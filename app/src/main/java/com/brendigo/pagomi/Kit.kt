@@ -413,7 +413,7 @@ fun Btn(
   onClick: () -> Unit,
 ) {
   val (bg, fg) = when (kind) {
-    BtnKind.Primary -> c.ink to c.onInk
+    BtnKind.Primary -> c.accent to c.onAccent
     BtnKind.Secondary -> Color.Transparent to c.ink
     BtnKind.Danger -> Brand.danger to Brand.onDanger
     BtnKind.Accent -> c.accent to c.onAccent

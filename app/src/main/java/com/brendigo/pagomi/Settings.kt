@@ -56,7 +56,8 @@ fun SettingsTab() {
   val version = remember { runCatching { appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName }.getOrNull() ?: "" }
 
   Screen {
-    LargeTitle("Settings")
+    PagomiHeader()
+    LargeTitle("Settings", "Manage your preferences, storage and privacy.")
 
     GroupLabel("Appearance", first = true)
     ThemePicker()
