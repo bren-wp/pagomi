@@ -1,0 +1,65 @@
+name: Bootstrap pagomi. Android
+
+on:
+  push:
+    branches:
+      - feat/pagomi-brand-and-scanner
+    paths:
+      - 'scripts/import_upstream.py'
+      - 'branding/**'
+      - '.github/workflows/bootstrap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Import upstream source and apply original pagomi brand
+        run: python3 scripts/import_upstream.py
+      - name: Assert brand and attribution
+        shell: bash
+        run: |
+          test -f app/src/main/java/com/brendigo/pagomi/MainActivity.kt
+          test -f app/src/main/java/com/brendigo/pagomi/Scanner.kt
+          test -f app/src/main/assets/docaligner_lc100.onnx
+          grep -q 'SammyZi' LICENSE
+          grep -q 'com.brendigo.pagomi' app/build.gradle.kts
+          grep -q 'pagomi.' app/src/main/res/values/themes.xml
+          test ! -e app/debug.keystore
+      - name: Commit imported Android source to branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          if ! git diff --cached --quiet; then
+            git commit -m "feat(android): import and rebrand native scanner as pagomi."
+            git push origin HEAD:feat/pagomi-brand-and-scanner
+          fi
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK platform
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+      - name: Unit tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagomi-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
