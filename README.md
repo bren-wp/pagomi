@@ -32,13 +32,13 @@ Mathematics recognition and step-by-step solving are planned as a separate futur
 
 ### Privacy by design
 
-Document processing is designed to stay on your device. Optional Google Drive sync requires your authorization and can transfer documents to your own Drive. Before a public launch, verify the production privacy policy and Google Play permissions.
+Document processing is designed to stay on your device. Optional Google Drive sync requires your authorization and can transfer documents to your own Drive. Our [privacy policy](PRIVACY.md) explains how on-device files and optional sync work.
 
 ### Development & licensing
 
 pagomi. is a separately branded Android application based on the MIT-licensed open-source project [PDF Tools by SammyZi](https://github.com/sammyZi/pdf-tools). The original copyright notice is retained in `LICENSE` and dependencies are credited in `THIRD_PARTY_NOTICES.md`.
 
-Build and branding instructions: [Branding guide](branding/README.md). Android source is imported automatically from a **pinned upstream revision** by the project's GitHub Actions bootstrap workflow. The source import and CI verification must complete before any build is considered installable.
+The Android source is committed in `app/`. The pinned import was used only for the initial migration; routine GitHub Actions builds never overwrite app changes. Build and branding instructions: [Branding guide](branding/README.md). See [Privacy Policy](PRIVACY.md) and [Google Play release checks](PLAY_RELEASE_CHECKLIST.md).
 
 **Brand:** pagomi.  
 **Android application ID:** `com.brendigo.pagomi`  
