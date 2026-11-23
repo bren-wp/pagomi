@@ -16,9 +16,7 @@ android {
     targetSdk = 36
     versionCode = 2
     versionName = "0.1.1"
-    // OpenCV ships a native lib per ABI; one keeps the APK small. `-PallAbis` (the release workflow) builds an APK per
-    // ABI plus a universal one instead.
-    if (!project.hasProperty("allAbis")) ndk { abiFilters += "arm64-v8a" }
+    // Default debug APK includes all supported ABIs; optional -PallAbis builds split APKs.
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 

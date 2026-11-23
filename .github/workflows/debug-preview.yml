@@ -39,6 +39,8 @@ jobs:
           "$SDKMGR" "platforms;android-36" "build-tools;36.0.0"
       - name: Build debug APK, debug AAB and unit tests
         run: ./gradlew :app:assembleDebug :app:bundleDebug :app:testDebugUnitTest --no-daemon --stacktrace
+      - name: Check 16 KB page-size support of native libraries
+        run: python3 scripts/check_native_16k.py app/build/outputs/apk/debug/app-debug.apk
       - name: Collect preview artifacts
         shell: bash
         run: |
