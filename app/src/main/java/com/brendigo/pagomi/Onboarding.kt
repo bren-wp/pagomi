@@ -128,10 +128,10 @@ private fun OnboardingBody(themeDark: Boolean, onDone: () -> Unit) {
     if (LOOKS[looks.currentPage].pref != ThemeState.pref) ThemeState.set(LOOKS[looks.currentPage].pref)
     onDone()
   }
-  val label = listOf("Get started", "Continue", "That's my look")[page]
+  val label = listOf("Continue", "Continue", "Get started")[page]
   val line = listOf("No account needed. Everything stays on this phone.", "Pin as many as you like. Change these anytime.", "A good fit can change. Switch anytime in Settings.")[page]
 
-  Column(Modifier.fillMaxSize().background(Brand.paper).statusBarsPadding().navigationBarsPadding()) {
+  Column(Modifier.fillMaxSize().background(Color(0xFFF7F5FC)).statusBarsPadding().navigationBarsPadding()) {
     Box(Modifier.weight(1f).fillMaxWidth()) {
       HorizontalPager(pager, Modifier.fillMaxSize()) { i ->
         when (i) {
@@ -141,10 +141,7 @@ private fun OnboardingBody(themeDark: Boolean, onDone: () -> Unit) {
         }
       }
       if (page > 0) Box(Modifier.padding(start = 12.dp, top = 6.dp)) { IconBtn(I.chevronLeft, 26.dp, DARK, "Back") { go(page - 1) } }
-      if (page < last) T(
-        "Skip", Type.med.copy(fontSize = 14.sp), DARK,
-        Modifier.align(Alignment.TopEnd).padding(end = 12.dp, top = 8.dp).tap(shape = CircleShape, scaleTo = 0.92f, label = "Skip the intro", onClick = onDone).padding(horizontal = 14.dp, vertical = 10.dp),
-      )
+
     }
     Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
       repeat(PAGES) { i ->
@@ -152,12 +149,13 @@ private fun OnboardingBody(themeDark: Boolean, onDone: () -> Unit) {
       }
     }
     Box(
-      Modifier.padding(horizontal = 24.dp).padding(top = 12.dp).fillMaxWidth().height(58.dp)
+      Modifier.padding(horizontal = 24.dp).padding(top = 8.dp).fillMaxWidth().height(48.dp)
         .tap(shape = CircleShape, scaleTo = 0.97f) { if (page < last) go(page + 1) else finish() }
         .background(Brand.primary, CircleShape),
       contentAlignment = Alignment.Center,
     ) { T(label, Type.button, Color.White, maxLines = 1) }
-    T(line, SMALL, SUB, Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 14.dp), align = TextAlign.Center)
+    if (page < last) T("Skip", Type.label, Brand.primary, Modifier.align(Alignment.CenterHorizontally).tap(label = "Skip the intro", onClick = onDone).padding(horizontal = 24.dp, vertical = 14.dp))
+    else T(line, SMALL, SUB, Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 12.dp), align = TextAlign.Center)
   }
 }
 

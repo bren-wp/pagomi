@@ -268,7 +268,7 @@ fun Screen(bottom: Dp = LocalBottomRoom.current, top: Boolean = true, content: @
           .imePadding()
           .verticalScroll(scroll)
           .then(if (top) Modifier.statusBarsPadding() else Modifier)
-          .padding(horizontal = 18.dp)
+          .padding(horizontal = 14.dp)
           .padding(top = 2.dp),
       ) {
         content()
@@ -277,7 +277,7 @@ fun Screen(bottom: Dp = LocalBottomRoom.current, top: Boolean = true, content: @
       }
       val node = float.value
       AnimatedVisibility(
-        node != null, Modifier.align(Alignment.BottomCenter).padding(12.dp).padding(bottom = bottom - 24.dp),
+        node != null, Modifier.align(Alignment.BottomCenter).padding(12.dp).padding(bottom = (bottom - 24.dp).coerceAtLeast(0.dp)),
         enter = slideInVertically { it } + fadeIn(), exit = slideOutVertically { it } + fadeOut(),
       ) {
         Box(Modifier.navigationBarsPadding()) { node?.invoke() }
@@ -297,7 +297,7 @@ fun Floating(show: Boolean, content: @Composable () -> Unit) {
 
 @Composable
 fun LargeTitle(title: String, sub: String? = null) {
-  Column(Modifier.padding(top = 2.dp, bottom = 16.dp)) {
+  Column(Modifier.padding(top = 2.dp, bottom = 10.dp)) {
     T(title, Type.largeTitle)
     if (!sub.isNullOrEmpty()) T(sub, Type.small, c.sub, Modifier.padding(top = 2.dp))
   }
@@ -306,7 +306,7 @@ fun LargeTitle(title: String, sub: String? = null) {
 @Composable
 fun GroupLabel(label: String, action: String? = null, onAction: (() -> Unit)? = null, first: Boolean = false, caps: Boolean = true) {
   Row(
-    Modifier.fillMaxWidth().padding(top = if (first) 0.dp else 26.dp, bottom = 8.dp).padding(horizontal = 4.dp),
+    Modifier.fillMaxWidth().padding(top = if (first) 0.dp else 18.dp, bottom = 6.dp).padding(horizontal = 4.dp),
     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom,
   ) {
     // A small spaced-out caption, so section names read as labels rather than headings. `caps` off for emails.
@@ -590,7 +590,7 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
     keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
     modifier = modifier.fillMaxWidth(),
     decorationBox = { inner ->
-      Row(Modifier.height(48.dp).background(c.sunken, shape).padding(start = 14.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+      Row(Modifier.heightIn(min = 40.dp).background(c.sunken, shape).border(1.dp, c.line, shape).padding(start = 12.dp, end = 4.dp, top = 5.dp, bottom = 5.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(I.magnify, 20.dp, c.sub)
         Spacer(Modifier.size(8.dp))
         Box(Modifier.weight(1f)) {

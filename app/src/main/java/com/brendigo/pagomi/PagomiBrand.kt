@@ -1,6 +1,7 @@
 package com.brendigo.pagomi
 
 import androidx.compose.foundation.Image
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,14 +18,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PagomiHeader() {
-  Row(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 20.dp),
+  Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-    Image(painterResource(R.drawable.pagomi_launcher), null, Modifier.size(52.dp))
+    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Image(painterResource(R.drawable.pagomi_launcher), null, Modifier.size(40.dp))
     Column(Modifier.weight(1f)) {
-      T(Brand.name, Type.largeTitle, c.ink, maxLines = 1)
-      T("PDF Scanner & Editor", Type.small, c.sub, maxLines = 2)
+      T(Brand.name, Type.title.copy(fontSize = 24.sp, lineHeight = 28.sp), c.ink, maxLines = 1)
+      T("PDF Scanner & Editor", Type.small.copy(fontSize = 10.sp, lineHeight = 14.sp), c.sub, maxLines = 2)
     }
-    T("Local", Type.num, Brand.ink, Modifier.background(Brand.mint, RoundedCornerShape(20.dp)).padding(horizontal = 12.dp, vertical = 8.dp))
+    T("Local", Type.num, Brand.ink, Modifier.background(Brand.mint, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 5.dp))
   }
 }
