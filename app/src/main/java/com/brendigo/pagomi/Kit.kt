@@ -17,6 +17,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.border
@@ -442,6 +443,14 @@ fun Btn(
 @Composable
 fun Spinner(color: Color = c.ink, size: Dp = 22.dp, modifier: Modifier = Modifier) {
   CircularProgressIndicator(modifier.size(size), color = color, strokeWidth = 2.dp)
+}
+
+/** A horizontally scrolling, reusable row of filter choices. */
+@Composable
+fun <K> ChipRow(options: List<Pair<K, String>>, value: K, modifier: Modifier = Modifier, onChange: (K) -> Unit) {
+  Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    options.forEach { (key, label) -> Chip(label, value == key) { onChange(key) } }
+  }
 }
 
 @Composable

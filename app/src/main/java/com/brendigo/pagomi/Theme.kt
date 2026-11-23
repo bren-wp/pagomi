@@ -15,14 +15,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.io.File
 
-// Central design tokens for the original pagomi. visual identity.\nobject Brand {
+// Central design tokens for the original pagomi. visual identity.
+object Brand {
   // Brand tokens live here. Edit this single object to re-skin the application.
   const val name = "pagomi."
   const val fullName = "pagomi. – PDF Scanner & Editor"
 
-  val primary = Color(0xFF6459D8)\n  val tangerine = primary // compatibility alias; use primary for new components
-  val ink = Color(0xFF192B36)\n  val cherry = ink // compatibility alias
-  val mint = Color(0xFFCDF2DE)\n  val cool = mint // compatibility alias
+  val primary = Color(0xFF6459D8)
+  val tangerine = primary // compatibility alias; use primary for new components
+  val ink = Color(0xFF192B36)
+  val cherry = ink // compatibility alias
+  val mint = Color(0xFFCDF2DE)
+  val cool = mint // compatibility alias
 }
 
 @Immutable
