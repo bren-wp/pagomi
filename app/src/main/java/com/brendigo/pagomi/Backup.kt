@@ -223,9 +223,9 @@ object Backup {
   fun describe(e: Throwable): String = when {
     e is DriveError && e.status == 401 -> "Google sign-in expired. Turn sync off and on again in Settings."
     e is DriveError && (e.status == 403 || e.status == 429) -> "Google Drive is limiting requests right now. Sync will try again later."
-    e is DriveError -> "Google Drive had a problem (error ${e.status}). Sync will try again later."
+    e is DriveError -> "Google Drive couldn’t sync. Please try again later."
     e is IOException -> "Couldn’t reach Google Drive. Check your connection; sync tries again when you open Files or save a file."
-    else -> e.message ?: "Something went wrong."
+    else -> "Couldn’t sync your documents. Please try again."
   }
 
   // ── Local side ──────────────────────────────────────────────────────────

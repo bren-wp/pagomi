@@ -291,7 +291,7 @@ fun Review(
         val scroll = rememberScrollState()
         val holder = remember { ScreenScroll(scroll) }
         androidx.compose.runtime.CompositionLocalProvider(LocalScreenScroll provides holder) {
-          Column(Modifier.fillMaxSize().onGloballyPositioned { holder.window = it.boundsInWindow() }.verticalScroll(scroll).padding(16.dp)) {
+          PagedColumn(Modifier.weight(1f).fillMaxWidth().padding(16.dp), scroll, Modifier.onGloballyPositioned { holder.window = it.boundsInWindow() }) {
             BoxWithConstraints {
               val cell = (maxWidth - 28.dp) / 3
               Reorderable(pages, { it.id }, { next -> setDoc { d -> d.copy(pages = next) } }, columns = 3, gap = 14.dp) { p, i, _ ->

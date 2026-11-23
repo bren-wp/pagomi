@@ -353,7 +353,7 @@ private fun ExportDialog(pdf: Saved, word: Boolean, onClose: () -> Unit) {
       val run = { key: String, fn: suspend () -> String? ->
         if (busy.isEmpty()) scope.launch {
           busy = key
-          try { fn()?.let { notes = notes + (key to it) } } catch (e: Exception) { notes = notes + (key to (e.message ?: "Something went wrong.")) }
+          try { fn()?.let { notes = notes + (key to it) } } catch (e: Exception) { notes = notes + (key to ("Couldn’t export this document. Please try again.")) }
           busy = ""
         }
         Unit

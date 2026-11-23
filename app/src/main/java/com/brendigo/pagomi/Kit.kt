@@ -254,33 +254,68 @@ val LocalFloat = compositionLocalOf<MutableState<(@Composable () -> Unit)?>?> { 
  * A scrolling page with the app's margins. `bottom` is the room kept under the content (the floating tab bar sits
  * there on the tabs).
  */
+/** A bounded viewport: users move through long content using explicit page buttons, never vertical swipes. */
+@Composable
+fun PagedColumn(
+  modifier: Modifier = Modifier,
+  scroll: ScrollState = rememberScrollState(),
+  viewportModifier: Modifier = Modifier,
+  horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+  content: @Composable ColumnScope.() -> Unit,
+) {
+  val scope = rememberCoroutineScope()
+  val overlap = with(LocalDensity.current) { 72.dp.roundToPx() }
+  val limit = scroll.maxValue
+  val step = (scroll.viewportSize - overlap).coerceAtLeast(1)
+  Column(modifier, horizontalAlignment = horizontalAlignment) {
+    Column(
+      Modifier.weight(1f, fill = false).fillMaxWidth().then(viewportModifier)
+        .verticalScroll(scroll, enabled = false),
+      horizontalAlignment = horizontalAlignment, content = content,
+    )
+    if (limit in 1 until Int.MAX_VALUE && scroll.viewportSize > 0) {
+      val count = ((limit.toLong() + step - 1) / step + 1).toInt()
+      val page = if (scroll.value >= limit) count else (scroll.value / step + 1).coerceIn(1, count)
+      Row(
+        Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(Radius.control))
+          .border(1.dp, c.line, RoundedCornerShape(Radius.control)).padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        IconBtn(I.chevronLeft, 24.dp, if (scroll.value > 0) c.accentInk else c.faint, "Previous section", enabled = scroll.value > 0) {
+          scope.launch { scroll.scrollTo((scroll.value - step).coerceAtLeast(0)) }
+        }
+        T("$page / $count", Type.label, c.sub, Modifier.weight(1f), align = TextAlign.Center)
+        IconBtn(I.chevronRight, 24.dp, if (scroll.value < limit) c.accentInk else c.faint, "Next section", enabled = scroll.value < limit) {
+          scope.launch { scroll.scrollTo((scroll.value.toLong() + step).coerceAtMost(limit.toLong()).toInt()) }
+        }
+      }
+    }
+  }
+}
+
 @Composable
 fun Screen(bottom: Dp = LocalBottomRoom.current, top: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
   val scroll = rememberScrollState()
   val holder = remember { ScreenScroll(scroll) }
   val float = remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
   CompositionLocalProvider(LocalScreenScroll provides holder, LocalFloat provides float) {
-    Box(Modifier.fillMaxSize().background(c.bg)) {
-      Column(
-        Modifier
-          .fillMaxSize()
-          .onGloballyPositioned { holder.window = it.boundsInWindow() }
-          .imePadding()
-          .verticalScroll(scroll)
-          .then(if (top) Modifier.statusBarsPadding() else Modifier)
-          .padding(horizontal = 14.dp)
-          .padding(top = 2.dp),
-      ) {
-        content()
-        Spacer(Modifier.height(bottom + if (float.value != null) 80.dp else 0.dp))
-        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-      }
-      val node = float.value
-      AnimatedVisibility(
-        node != null, Modifier.align(Alignment.BottomCenter).padding(12.dp).padding(bottom = (bottom - 24.dp).coerceAtLeast(0.dp)),
-        enter = slideInVertically { it } + fadeIn(), exit = slideOutVertically { it } + fadeOut(),
-      ) {
-        Box(Modifier.navigationBarsPadding()) { node?.invoke() }
+    Column(Modifier.fillMaxSize().background(c.bg).imePadding().then(if (top) Modifier.statusBarsPadding() else Modifier).navigationBarsPadding()) {
+      Box(Modifier.weight(1f).fillMaxWidth()) {
+        PagedColumn(
+          Modifier.fillMaxSize().padding(horizontal = 14.dp).padding(top = 2.dp),
+          scroll = scroll,
+          viewportModifier = Modifier.onGloballyPositioned { holder.window = it.boundsInWindow() },
+        ) {
+          content()
+          Spacer(Modifier.height(bottom.coerceAtMost(12.dp) + if (float.value != null) 80.dp else 0.dp))
+        }
+        val node = float.value
+        AnimatedVisibility(
+          node != null, Modifier.align(Alignment.BottomCenter).padding(12.dp).padding(bottom = if (scroll.maxValue in 1 until Int.MAX_VALUE) 48.dp else 0.dp),
+          enter = slideInVertically { it } + fadeIn(), exit = slideOutVertically { it } + fadeOut(),
+        ) {
+          Box { node?.invoke() }
+        }
       }
     }
   }
@@ -656,7 +691,7 @@ fun AppDialog(onDismiss: () -> Unit, title: String, subtitle: String? = null, co
         val shape = RoundedCornerShape(26.dp)
         Column(
           Modifier.widthIn(max = 420.dp).fillMaxWidth().pointerInput(Unit) { detectTapGestures { } } // taps on the card stay on it
-            .shadow(12.dp, shape).background(c.surface, shape).border(1.dp, c.line, shape).verticalScroll(rememberScrollState()).padding(20.dp),
+            .shadow(12.dp, shape).background(c.surface, shape).border(1.dp, c.line, shape).padding(20.dp),
         ) {
           Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f).padding(top = 2.dp)) {
@@ -665,7 +700,7 @@ fun AppDialog(onDismiss: () -> Unit, title: String, subtitle: String? = null, co
             }
             IconBtn(I.close, 22.dp, c.sub, "Close", onClick = onDismiss)
           }
-          content()
+          PagedColumn(Modifier.weight(1f, fill = false).fillMaxWidth(), content = content)
         }
       }
     }

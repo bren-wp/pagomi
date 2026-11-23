@@ -2,7 +2,7 @@ name: Archive verified Android screenshots
 
 on:
   push:
-    branches: [feat/pagomi-screen-gallery]
+    branches: [feat/pagomi-fixed-screens]
     paths:
       - '.github/workflows/archive-screens.yml'
   workflow_dispatch:
@@ -10,11 +10,11 @@ on:
       run_id:
         description: Successful device test workflow run
         required: true
-        default: '45279327395'
+        default: '45286276735'
       version:
         description: Version label
         required: true
-        default: '0.1.7'
+        default: '0.1.8'
 
 permissions:
   contents: write
@@ -32,8 +32,8 @@ jobs:
       - name: Download verified source screenshots
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ inputs.run_id || '45279327395' }}
-          VERSION: ${{ inputs.version || '0.1.7' }}
+          RUN_ID: ${{ inputs.run_id || '45286276735' }}
+          VERSION: ${{ inputs.version || '0.1.8' }}
         shell: bash
         run: |
           set -euo pipefail

@@ -169,8 +169,9 @@ private fun ConsentBody(onAccept: (() -> Unit)?, onClose: (() -> Unit)?) {
           T(title, Type.title.copy(fontSize = Type.title.fontSize * 0.75f), modifier = Modifier.weight(1f))
           IconBtn(I.close, 24.dp, label = "Close") { doc = null }
         }
-        T(body, Type.small.copy(fontSize = Type.small.fontSize * 1.07f, lineHeight = Type.small.lineHeight * 1.15f), c.sub,
-          Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 40.dp))
+        PagedColumn(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 20.dp)) {
+          T(body, Type.small.copy(fontSize = Type.small.fontSize * 1.07f, lineHeight = Type.small.lineHeight * 1.15f), c.sub, Modifier.padding(bottom = 12.dp))
+        }
       }
     }
   }

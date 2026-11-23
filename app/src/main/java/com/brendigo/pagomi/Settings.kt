@@ -63,7 +63,7 @@ fun SettingsTab() {
       Icon(I.shieldCheckOutline, 28.dp, c.accentInk)
       Column(Modifier.weight(1f).padding(start = 12.dp)) {
         T("Your documents, your control", Type.bold)
-        T("Local processing · No account required", Type.small, c.sub)
+        T("No account required", Type.small, c.sub)
       }
     }
     GroupLabel("Storage & sync")
@@ -159,7 +159,7 @@ private fun DriveBackup() {
     scope.launch {
       busy = true
       error = ""
-      try { Backup.connect() } catch (e: Exception) { error = e.message ?: "Google sign-in failed." }
+      try { Backup.connect() } catch (e: Exception) { error = Backup.describe(e) }
       busy = false
     }
     Unit
