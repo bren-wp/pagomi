@@ -363,7 +363,7 @@ private fun Capture(
       if (retake != null) T("Retake page", Type.bold.copy(fontSize = 16.sp), c.ink, Modifier.weight(1f), align = TextAlign.Center) else Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
         Image(androidx.compose.ui.res.painterResource(R.drawable.pagomi_launcher), null, Modifier.size(30.dp))
         Spacer(Modifier.size(6.dp))
-        T(Brand.name, Type.bold, c.ink, maxLines = 1)
+        T(Brand.name, Type.num, c.ink, maxLines = 1)
       }
       if (retake == null && doc.pages.isEmpty()) Tap(I.history, "Recent scans", tint = c.ink, onClick = onRecent)
       // Flash stays in its place whatever the lens, so nothing shifts when flipping: front lenses have no flash on most
