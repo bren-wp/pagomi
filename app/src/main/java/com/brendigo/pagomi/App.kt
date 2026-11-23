@@ -89,10 +89,10 @@ import java.io.File
 @Serializable data class ToolRoute(val id: String, val resume: Boolean = false)
 @Serializable data class ScanRoute(val id: String = "")
 
-enum class Tab { Tools, Files, Settings }
+enum class Tab { Home, Files, Tools, Settings }
 
 class Nav(private val controller: NavHostController) {
-  var tab by mutableStateOf(Tab.Tools)
+  var tab by mutableStateOf(Tab.Home)
   private var scanAt = 0L
 
   fun viewer(path: String, name: String) {
@@ -231,7 +231,7 @@ private fun Root() {
 @Composable
 private fun MainShell() {
   val nav = LocalNav.current
-  BackHandler(nav.tab != Tab.Tools) { nav.tab = Tab.Tools }
+  BackHandler(nav.tab != Tab.Home) { nav.tab = Tab.Home }
   val draft = Drafts.current
   val draftTool = draft?.let { toolById(it.tool) }
   val holder = rememberSaveableStateHolder()
@@ -249,7 +249,8 @@ private fun MainShell() {
       ) { t ->
         holder.SaveableStateProvider(t.name) {
           when (t) {
-            Tab.Tools -> Home()
+            Tab.Home -> Home()
+            Tab.Tools -> ToolsHub()
             Tab.Files -> FilesTab()
             Tab.Settings -> SettingsTab()
           }
@@ -300,39 +301,23 @@ private fun ResumeBar(tool: Tool, files: Int) {
 @Composable
 private fun NavPill(haze: HazeState) {
   val nav = LocalNav.current
-  val slots = listOf<Pair<Tab?, Int>>(Tab.Tools to I.viewGridOutline, null to I.cameraPlusOutline, Tab.Files to I.folderOutline, Tab.Settings to I.cogOutline)
-  val labels = listOf("Tools", "Scan a document", "Files", "Settings")
-  val pill = CircleShape
-  val glass = c.panel
-  // Black Cherry glass: enough colour to read over warm paper, see-through enough to show the blur.
-  val glassAlpha = if (c.dark) 0.55f else 0.68f
-  val onActive = c.onAccent
-  // A light rim catching the edge of the glass, brighter at the top-left.
-  val rim = androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.38f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.16f)))
-  BoxWithConstraints(
-    Modifier.padding(horizontal = 28.dp).fillMaxWidth().height(62.dp).shadow(10.dp, pill, ambientColor = Color.Black, spotColor = Color.Black)
-      .clip(pill)
-      .hazeEffect(haze) {
-        blurRadius = 24.dp
-        backgroundColor = glass
-        tints = listOf(HazeTint(glass.copy(alpha = glassAlpha)))
-        noiseFactor = 0.12f
-      }
-      .border(1.dp, rim, pill).padding(6.dp),
-  ) {
-    val slot = maxWidth / slots.size
-    val capsule = minOf(slot - 4.dp, 76.dp)
-    val active = slots.indexOfFirst { it.first == nav.tab }
-    val x by animateDpAsState(slot * active + (slot - capsule) / 2, spring(0.72f, Spring.StiffnessMediumLow), label = "pill")
-    Box(Modifier.offset(x = x).size(capsule, maxHeight).background(c.accent, CircleShape))
-    Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-      slots.forEachIndexed { i, (tab, glyph) ->
-        val on = tab != null && nav.tab == tab
-        val tint by androidx.compose.animation.animateColorAsState(if (on) onActive else c.onPanel.copy(alpha = 0.78f), tween(220), label = "tint")
-        Box(
-          Modifier.width(slot).fillMaxSize().tap(shape = CircleShape, scaleTo = 0.86f, label = labels[i]) { if (tab == null) nav.scan() else nav.show(tab) },
-          contentAlignment = Alignment.Center,
-        ) { Icon(glyph, if (on) 19.dp else 18.dp, tint, label = labels[i]) }
+  val slots = listOf<Pair<Tab?, Int>>(Tab.Home to I.homeOutline, null to I.lineScan, Tab.Files to I.folderOutline, Tab.Tools to I.viewGridOutline, Tab.Settings to I.cogOutline)
+  val labels = listOf("Home", "Scan", "Files", "Tools", "Settings")
+  val shape = RoundedCornerShape(26.dp)
+  Row(Modifier.padding(horizontal = 12.dp).fillMaxWidth().height(68.dp).shadow(8.dp, shape)
+    .background(c.surface, shape).border(1.dp, c.line, shape).padding(5.dp),
+    verticalAlignment = Alignment.CenterVertically) {
+    slots.forEachIndexed { i, (tab, glyph) ->
+      val on = tab != null && nav.tab == tab
+      val tint = if (on) c.accentInk else c.ink
+      val tile = RoundedCornerShape(20.dp)
+      Column(Modifier.weight(1f).fillMaxSize().tap(shape = tile, scaleTo = 0.94f, label = labels[i]) {
+        if (tab == null) nav.scan() else nav.show(tab)
+      }.background(if (on) c.accentSoft else Color.Transparent, tile),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Icon(glyph, 22.dp, tint)
+        Spacer(Modifier.height(3.dp))
+        T(labels[i], Type.num, tint, maxLines = 1)
       }
     }
   }

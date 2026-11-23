@@ -24,6 +24,8 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,7 +54,7 @@ import java.util.Date
 private fun matches(target: String, tokens: List<String>) = target.lowercase().let { t -> tokens.all { it in t } }
 
 @Composable
-fun Home() {
+fun ToolsHub() {
   val nav = LocalNav.current
   var q by rememberSaveable { mutableStateOf("") }
   val files = remember(Store.version) { listAllFiles() }
@@ -65,12 +67,11 @@ fun Home() {
   var section by rememberSaveable { mutableStateOf(-1) } // -1: every section
 
   Screen {
-    LargeTitle(Brand.name, "Scan, edit and organize your documents.")
-    SearchField(q, { q = it }, "Merge, split, compress…")
+    PagomiHeader()
+    LargeTitle("Tools", "Powerful PDF tools to edit, organize, and work smarter.")
+    SearchField(q, { q = it }, "Search tools or files…")
 
     if (!searching) {
-      Stagger(0) { Hero(files) { nav.scan() } }
-      if (files.isNotEmpty()) Stagger(1) { RecentPanel(files.take(3)) { nav.show(Tab.Files) } }
       Row(
         Modifier.padding(top = 22.dp).horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -252,6 +253,93 @@ private fun RecentPanel(recent: List<Saved>, onAll: () -> Unit) {
         }
         Spacer(Modifier.size(8.dp))
         RoundBtn(I.shareVariantOutline, ink, Brand.cool, 34.dp, "Share") { share(f.path, f.name) }
+      }
+    }
+  }
+}
+
+/** Native home dashboard: the document library and every action use live data. */
+@Composable
+fun Home() {
+  val nav = LocalNav.current
+  val scope = rememberCoroutineScope()
+  val files = remember(Store.version) { listAllFiles() }
+  var query by rememberSaveable { mutableStateOf("") }
+  val tokens = query.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+  val actions = listOf("merge" to "Merge", "fillSign" to "Sign", "ocr" to "OCR", "compress" to "Compress", "split" to "Split")
+  Screen {
+    PagomiHeader()
+    LargeTitle(greeting(), SimpleDateFormat("'Today is' EEE, MMM d, yyyy", LocalLocale.current.platformLocale).format(Date()))
+    SearchField(query, { query = it }, "Search files, tools, or documents…")
+    if (tokens.isEmpty()) {
+      val shape = RoundedCornerShape(26.dp)
+      Row(Modifier.padding(top = 18.dp).fillMaxWidth().tap(shape = shape, label = "Scan Document") { nav.scan() }
+        .background(Brush.linearGradient(listOf(Color(0xFF8175EE), Brand.primary, Color(0xFF403978))), shape).padding(18.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Icon(I.lineScan, 32.dp, Color.White)
+        Spacer(Modifier.size(14.dp))
+        Column(Modifier.weight(1f)) {
+          T("Scan Document", Type.hero, Color.White)
+          T("Turn paper and photos into clean, high-quality PDFs.", Type.small, Color.White)
+        }
+        Icon(I.arrowRight, 22.dp, Color.White)
+      }
+      val importShape = RoundedCornerShape(Radius.card)
+      Row(Modifier.padding(top = 12.dp).fillMaxWidth().tap(shape = importShape, label = "Import PDF") {
+        scope.launch { pickPdfs(false).firstOrNull()?.let { openFile(it.path, it.name) } }
+      }.background(c.surface, importShape).border(1.dp, c.line, importShape).padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(I.filePdfBox, 28.dp, c.accent)
+        Spacer(Modifier.size(12.dp))
+        Column(Modifier.weight(1f)) {
+          T("Import PDF", Type.item)
+          T("Add a PDF from your device", Type.small, c.sub)
+        }
+        Icon(I.chevronRight, 20.dp, c.sub)
+      }
+      Row(Modifier.padding(top = 18.dp).fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        actions.forEach { (id, label) ->
+          val tile = RoundedCornerShape(18.dp)
+          Column(Modifier.size(width = 65.dp, height = 76.dp).tap(shape = tile, label = label) { nav.tool(id) }
+            .background(if (id == "ocr" && !c.dark) Brand.mint else c.accentSoft, tile).padding(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            ToolArt(id, 28.dp)
+            T(label, Type.num, c.ink, maxLines = 1)
+          }
+        }
+      }
+      GroupLabel("Recent files", "See All", { nav.show(Tab.Files) }, caps = false)
+      if (files.isEmpty()) T("Your scanned and imported documents will appear here.", Type.body, c.sub, Modifier.padding(vertical = 16.dp))
+      else DashboardFiles(files.take(3))
+    } else {
+      val found = files.filter { matches(it.name, tokens) }
+      val tools = TOOLS.filter { matches("${it.title} ${it.desc}", tokens) }
+      if (found.isNotEmpty()) {
+        GroupLabel("Files", caps = false)
+        DashboardFiles(found)
+      }
+      if (tools.isNotEmpty()) {
+        GroupLabel("Tools", caps = false)
+        ToolGrid(tools) { nav.tool(it.id) }
+      }
+      if (found.isEmpty() && tools.isEmpty()) T("No matching files or tools.", Type.body, c.sub, Modifier.padding(top = 24.dp))
+    }
+  }
+}
+
+@Composable
+private fun DashboardFiles(files: List<Saved>) {
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    files.forEach { f ->
+      val shape = RoundedCornerShape(Radius.group)
+      Row(Modifier.fillMaxWidth().tap(shape = shape, label = "Open ${f.name}") { openFile(f.path, f.name) }
+        .background(c.surface, shape).border(1.dp, c.line, shape).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        DocGlyph(kindOf(f.name))
+        Spacer(Modifier.size(12.dp))
+        Column(Modifier.weight(1f)) {
+          Marquee(f.name, Type.item, c.ink)
+          T("${fmtSize(f.size)} · ${fmtDate(f.modified)}", Type.small, c.sub, maxLines = 1)
+        }
+        IconBtn(I.shareVariantOutline, 20.dp, c.accent, "Share") { share(f.path, f.name) }
       }
     }
   }
