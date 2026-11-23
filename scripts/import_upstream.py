@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Import a pinned, MIT-licensed Android scanner and apply pagomi. branding.
 
-Run from the repository root. The upstream revision is deliberately pinned so
+Bootstrap only: run once from the repository root, never from routine CI.\nThe upstream revision is deliberately pinned so
 builds and license audits are reproducible. Do not run on a dirty checkout.
 """
 from pathlib import Path
@@ -90,7 +90,7 @@ def main() -> None:
     # An unsigned release is safer than silently distributing a debug-signed release.
     content = content.replace('signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")', 'signingConfigs.findByName("release")')
     gradle.write_text(content, encoding="utf-8")
-    replace_file(ROOT / "settings.gradle.kts", 'rootProject.name = "PDF Tools"', 'rootProject.name = "pagomi."')
+    replace_file(ROOT / "settings.gradle.kts", 'rootProject.name = "PDF Tools"', 'rootProject.name = "pagomi"')
 
     theme = ROOT / NEW_PATH / "Theme.kt"
     theme_text = theme.read_text(encoding="utf-8")
