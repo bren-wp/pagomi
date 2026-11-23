@@ -310,7 +310,7 @@ fun Screen(bottom: Dp = LocalBottomRoom.current, top: Boolean = true, content: @
           Spacer(Modifier.height(bottom.coerceAtMost(12.dp) + if (float.value != null) 80.dp else 0.dp))
         }
         val node = float.value
-        AnimatedVisibility(
+        androidx.compose.animation.AnimatedVisibility(
           node != null, Modifier.align(Alignment.BottomCenter).padding(12.dp).padding(bottom = if (scroll.maxValue in 1 until Int.MAX_VALUE) 48.dp else 0.dp),
           enter = slideInVertically { it } + fadeIn(), exit = slideOutVertically { it } + fadeOut(),
         ) {
