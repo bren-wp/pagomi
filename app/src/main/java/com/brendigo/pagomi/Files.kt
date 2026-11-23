@@ -47,7 +47,7 @@ private enum class Filter(val label: String) { All("All"), Pdf("PDF"), Zip("ZIP"
 
 private enum class DriveFilter(val label: String) { All("All"), Recent("Recent"), OnPhone("On this phone"), DriveOnly("Only in Drive") }
 
-/** Saved: what the app made. Phone: every PDF on the device. Drive: the synced Google Drive folder. */
+/** Saved: what the app made. Browse: user-selected PDFs via Android's file picker. Drive: the synced Google Drive folder. */
 private enum class Place { Saved, Phone, Drive }
 
 private sealed interface Menu {
@@ -131,15 +131,15 @@ fun FilesTab() {
       }
       LargeTitle(folderName, if (onDrive) "In Google Drive" else subtitle)
     } else {
-      LargeTitle("Files", when (place) { Place.Drive -> "Synced with Google Drive"; Place.Phone -> "Every PDF on this phone"; Place.Saved -> subtitle })
+      LargeTitle("Files", when (place) { Place.Drive -> "Synced with Google Drive"; Place.Phone -> "Open a PDF from this phone"; Place.Saved -> subtitle })
     }
 
     // Saved / Phone / Google Drive, only at the top level: inside a folder the subtitle already says which side it is.
     if (folderName == null) {
-      Segmented(listOf(Place.Saved to "Saved", Place.Phone to "Phone", Place.Drive to "Drive"), place, icons = listOf(I.folderOutline, I.cellphone, I.googleDrive)) { place = it; query = "" }
+      Segmented(listOf(Place.Saved to "Saved", Place.Phone to "Browse", Place.Drive to "Drive"), place, icons = listOf(I.folderOutline, I.cellphone, I.googleDrive)) { place = it; query = "" }
       Spacer(Modifier.height(12.dp))
     }
-    SearchField(query, { query = it }, if (place == Place.Phone) "Search PDFs on this phone…" else "Search files…")
+    SearchField(query, { query = it }, if (place == Place.Phone) "Use Browse to select a PDF…" else "Search files…")
 
     AnimatedContent(place, label = "place", transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { where ->
       Column {
