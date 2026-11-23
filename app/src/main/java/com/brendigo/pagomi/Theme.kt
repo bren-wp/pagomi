@@ -15,17 +15,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.io.File
 
-// Three colours: Tangerine is the one sharp accent, Black Cherry is the ink (text, primary buttons, the tab bar), and
-// Cool Blue is the quiet second surface (the Recent card, the hero's words). Light is warm paper; dark is a
-// cherry-tinted near-black. Loud surfaces are a radial glow with film grain, not a glossy linear gradient.
-object Brand {
+// Central design tokens for the original pagomi. visual identity.\nobject Brand {
   // Brand tokens live here. Edit this single object to re-skin the application.
   const val name = "pagomi."
   const val fullName = "pagomi. – PDF Scanner & Editor"
 
-  val tangerine = Color(0xFF6459D8)
-  val cherry = Color(0xFF192B36)
-  val cool = Color(0xFFCDF2DE)
+  val primary = Color(0xFF6459D8)\n  val tangerine = primary // compatibility alias; use primary for new components
+  val ink = Color(0xFF192B36)\n  val cherry = ink // compatibility alias
+  val mint = Color(0xFFCDF2DE)\n  val cool = mint // compatibility alias
 }
 
 @Immutable
@@ -60,7 +57,7 @@ val LightPalette = Palette(
   dark = false,
 )
 
-// Dark is a neutral warm near-black (after Poetica), not a cherry tint: Tangerine is the only colour in it.
+// Dark is a neutral warm near-black (after Poetica), not a cherry tint: violet is the only saturated colour in it.
 val DarkPalette = Palette(
   bg = Color(0xFF111110), surface = Color(0xFF1A1A18), sunken = Color(0xFF232321), page = Color(0xFF262624),
   ink = Color(0xFFEDEDEB), sub = Color(0xFF9C9C99), faint = Color(0xFF6B6A66), line = Color(0xFF2A2A27),
@@ -71,8 +68,8 @@ val DarkPalette = Palette(
   dark = true,
 )
 
-// The scanner is its own dark, camera-style surface in both themes: the dark palette's near-blacks, with Tangerine for
-// detection and actions (and Black Cherry on top of it).
+// The scanner is its own dark, camera-style surface in both themes: the dark palette's near-blacks, with violet for
+// detection and actions (and deep ink on top of it).
 object ScanUi {
   val bg = Color(0xFF0B0B0A)
   val panel = Color(0xFF1A1A18)
@@ -81,7 +78,7 @@ object ScanUi {
   val dim = Color(0xFF9C9C99)
   val line = Color(0xFF2A2A27)
   val accent = Brand.tangerine
-  val accentSoft = Color(0x38FF5C34)
+  val accentSoft = Color(0x386459D8)
   val onAccent = Brand.cherry
   val scrim = Color(0x99000000)
 }
@@ -130,7 +127,7 @@ object Radius {
 enum class ThemePref { System, Light, Dark }
 
 object ThemeState {
-  private val file get() = File(appContext.filesDir, "theme.txt") // same file the Expo app used
+  private val file get() = File(appContext.filesDir, "theme.txt")
   var pref by mutableStateOf(read())
     private set
 
