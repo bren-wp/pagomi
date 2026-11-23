@@ -1,47 +1,60 @@
-<div align="center">
+<p align="center">
+  <img src="assets/brand/pagomi-cover.svg" alt="pagomi. — Every page. Made simple. PDF Scanner & Editor" width="100%">
+</p>
 
-# pagomi.
+<h1 align="center">pagomi.</h1>
+<p align="center"><strong>PDF Scanner &amp; Editor</strong></p>
+<p align="center">Scan. Edit. Create.<br>Your everyday documents, beautifully handled.</p>
 
-### PDF Scanner & Editor
-
-**Scan. Edit. Create.**
-
-Your everyday documents, beautifully handled.
-
-</div>
+<p align="center">
+  <a href="https://github.com/bren-wp/pagomi/releases"><strong>Explore downloads</strong></a>
+  &nbsp; · &nbsp;
+  <a href="PRIVACY.md">Your privacy</a>
+</p>
 
 ---
 
-### Everything your documents need.
+## A little less paperwork. A lot more possibility.
 
-**Scan beautifully.** Capture receipts, books, documents and ID cards with camera-based edge detection, intelligent cropping, and image enhancement.
+From the receipt in your pocket to the document you need to sign, **pagomi.** brings your pages together in one beautiful place.
 
-**Edit with ease.** Merge, split, rotate, reorder, compress, sign, redact, and protect PDFs—all from your phone.
+<table>
+<tr>
+  <td width="33%" align="center"><img src="assets/brand/scan.svg" alt="Illustration of a document being scanned" width="100%"></td>
+  <td width="33%" align="center"><img src="assets/brand/edit.svg" alt="Illustration of intuitive PDF editing" width="100%"></td>
+  <td width="33%" align="center"><img src="assets/brand/organize.svg" alt="Illustration of an organized document library" width="100%"></td>
+</tr>
+<tr>
+  <td align="center"><strong>📷 Scan with confidence</strong></td>
+  <td align="center"><strong>✏️ Edit in a moment</strong></td>
+  <td align="center"><strong>📂 Keep it together</strong></td>
+</tr>
+<tr>
+  <td align="center">Capture, straighten, crop and enhance.</td>
+  <td align="center">Merge, split, sign, compress and protect.</td>
+  <td align="center">Find, organize, export and share.</td>
+</tr>
+</table>
 
-**Find what matters.** On-device OCR helps make scanned documents searchable.
+## Your best work starts with a page.
 
-**Keep your work together.** Organize your documents and share or export them without a mandatory account.
+**✨ Beautiful scans**  
+Turn notes, receipts, books, forms and ID cards into polished PDFs. Smart page detection helps you capture the whole picture.
 
-### Designed to feel effortless
+**🔎 Text you can actually find**  
+Search and copy the words in your scans with on-device text recognition.
 
-A thoughtful, distinct visual identity. Calm surfaces, clear typography, a refined violet accent, expressive mint details and a clean navigation experience.
+**🪄 Powerful PDF tools, made simple**  
+Combine pages, rearrange them, add a signature, watermark a document, compress a file or protect it with a password.
 
-### What's coming next
+**☁️ Your files, your choice**  
+Keep your documents on your phone. Share or export whenever you want, with optional Google Drive synchronization.
 
-Mathematics recognition and step-by-step solving are planned as a separate future capability. They are **not part of the first scanner release**.
+**🔐 Thoughtful about privacy**  
+No mandatory account. No ads. No analytics. Core document processing takes place on your device.
 
-### Privacy by design
+---
 
-Document processing is designed to stay on your device. Optional Google Drive sync requires your authorization and can transfer documents to your own Drive. Our [privacy policy](PRIVACY.md) explains how on-device files and optional sync work.
-
-### Development & licensing
-
-pagomi. is a separately branded Android application based on the MIT-licensed open-source project [PDF Tools by SammyZi](https://github.com/sammyZi/pdf-tools). The original copyright notice is retained in `LICENSE` and dependencies are credited in `THIRD_PARTY_NOTICES.md`.
-
-The Android source is committed in `app/`. The pinned import was used only for the initial migration; routine GitHub Actions builds never overwrite app changes. Build and branding instructions: [Branding guide](branding/README.md). See [Privacy Policy](PRIVACY.md) and [Google Play release checks](PLAY_RELEASE_CHECKLIST.md).
-
-**Brand:** pagomi.  
-**Android application ID:** `com.brendigo.pagomi`  
-**Repository:** [bren-wp/pagomi](https://github.com/bren-wp/pagomi)
-
-Copyright © 2026 Brendigo, modifications. Original upstream copyright © 2026 SammyZi. MIT License.
+<p align="center"><strong>Less clutter. More done.</strong></p>
+<p align="center">Made for the moments when paperwork shouldn't get in the way.</p>
+<p align="center"><strong>pagomi.</strong> — Scan. Edit. Create.</p>
