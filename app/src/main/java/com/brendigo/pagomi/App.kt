@@ -86,7 +86,7 @@ import java.io.File
 // ── Navigation ──────────────────────────────────────────────────────────────
 
 @Serializable object MainRoute
-@Serializable data class ToolRoute(val id: String, val resume: Boolean = false)
+@Serializable data class ToolRoute(val id: String, val resume: Boolean = false, val sourcePath: String = "", val sourceName: String = "")
 @Serializable data class ScanRoute(val id: String = "")
 
 enum class Tab { Home, Files, Tools, Settings }
@@ -99,9 +99,9 @@ class Nav(private val controller: NavHostController) {
     controller.navigate(ViewerRoute(path, name)) { launchSingleTop = true }
   }
 
-  fun tool(id: String, resume: Boolean = false) {
+  fun tool(id: String, resume: Boolean = false, sourcePath: String = "", sourceName: String = "") {
     if (id == "scan") return scan()
-    controller.navigate(ToolRoute(id, resume)) { launchSingleTop = true }
+    controller.navigate(ToolRoute(id, resume, sourcePath, sourceName)) { launchSingleTop = true }
   }
 
   // A quick double tap must not stack two cameras.
@@ -207,7 +207,7 @@ private fun Root() {
           composable<MainRoute> { CompositionLocalProvider(LocalAnim provides this) { MainShell() } }
           composable<ToolRoute> { entry ->
             val r = entry.toRoute<ToolRoute>()
-            CompositionLocalProvider(LocalAnim provides this) { ToolScreen(r.id, r.resume) }
+            CompositionLocalProvider(LocalAnim provides this) { ToolScreen(r.id, r.resume, r.sourcePath, r.sourceName) }
           }
           // The scanner comes up over everything, sliding in from the bottom like a native camera sheet.
           composable<ScanRoute>(
