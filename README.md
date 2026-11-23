@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/pagomi-cover.svg" alt="pagomi. — Every page. Made simple. PDF Scanner & Editor" width="100%">
+  <img src="brending/assets/icon.svg" alt="pagomi. scanner icon" width="128">
 </p>
 
 <h1 align="center">pagomi.</h1>

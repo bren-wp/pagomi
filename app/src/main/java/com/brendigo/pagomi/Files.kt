@@ -123,6 +123,7 @@ fun FilesTab() {
   }
 
   Screen {
+    if (folderName == null) PagomiHeader()
     if (folderName != null) {
       Row(Modifier.padding(top = 4.dp).tap(scaleTo = 0.95f, onClick = goBack).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(I.arrowLeft, 20.dp)
@@ -131,7 +132,7 @@ fun FilesTab() {
       }
       LargeTitle(folderName, if (onDrive) "In Google Drive" else subtitle)
     } else {
-      LargeTitle("Files", when (place) { Place.Drive -> "Synced with Google Drive"; Place.Phone -> "Open a PDF from this phone"; Place.Saved -> subtitle })
+      LargeTitle("My Files", when (place) { Place.Drive -> "Synced with Google Drive"; Place.Phone -> "Open a PDF from this phone"; Place.Saved -> subtitle })
     }
 
     // Saved / Phone / Google Drive, only at the top level: inside a folder the subtitle already says which side it is.

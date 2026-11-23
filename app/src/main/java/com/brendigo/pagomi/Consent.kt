@@ -10,6 +10,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -132,9 +134,10 @@ private fun ConsentBody(onAccept: (() -> Unit)?, onClose: (() -> Unit)?) {
           Modifier.size(84.dp).graphicsLayer { scaleX = pop.value; scaleY = pop.value }
             .clip(RoundedCornerShape(26.dp)).glow(c.hero, 0.85f, 1f),
           contentAlignment = Alignment.Center,
-        ) { Icon(I.filePdfBox, 46.dp, Color.White) }
+        ) { Image(painterResource(R.drawable.pagomi_launcher), null, Modifier.fillMaxSize()) }
         T("pagomi.", Type.largeTitle, modifier = Modifier.padding(top = 18.dp))
-        T("Your documents never leave this phone.", Type.body, c.sub, Modifier.padding(top = 4.dp), align = TextAlign.Center)
+        T("PDF Scanner & Editor", Type.body, c.sub, Modifier.padding(top = 4.dp), align = TextAlign.Center)
+        T("Scan. Edit. Create.", Type.label, c.accentInk, Modifier.padding(top = 8.dp), align = TextAlign.Center)
         Column(Modifier.fillMaxWidth().padding(top = 30.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
           POINTS.forEachIndexed { i, (glyph, label) -> Stagger(i) { Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(34.dp).background(c.sunken, RoundedCornerShape(Radius.tile)), contentAlignment = Alignment.Center) { Icon(glyph, 18.dp, c.sub) }

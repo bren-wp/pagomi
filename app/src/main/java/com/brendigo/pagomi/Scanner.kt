@@ -354,29 +354,26 @@ private fun Capture(
     steady -> "Capturing… hold steady"
     lost -> "No document found. Capture manually."
     corners != null -> "Hold steady"
-    else -> "Looking for document"
+    else -> "Align document inside frame"
   }
 
   Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-    Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-      Tap(I.close, "Close", onClick = if (doc.pages.isNotEmpty()) onReview else onClose)
-      if (retake != null) T("Retake page", Type.bold.copy(fontSize = 16.sp), ScanUi.text, Modifier.weight(1f), align = TextAlign.Center) else Spacer(Modifier.weight(1f))
-      if (retake == null && doc.pages.isEmpty()) Tap(I.history, "Recent scans", onClick = onRecent)
+    Row(Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)).height(60.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+      Tap(I.close, "Close", tint = c.ink, onClick = if (doc.pages.isNotEmpty()) onReview else onClose)
+      if (retake != null) T("Retake page", Type.bold.copy(fontSize = 16.sp), c.ink, Modifier.weight(1f), align = TextAlign.Center) else Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+        Image(androidx.compose.ui.res.painterResource(R.drawable.pagomi_launcher), null, Modifier.size(30.dp))
+        Spacer(Modifier.size(6.dp))
+        T(Brand.name, Type.num, c.ink, maxLines = 1)
+      }
+      if (retake == null && doc.pages.isEmpty()) Tap(I.history, "Recent scans", tint = c.ink, onClick = onRecent)
       // Flash stays in its place whatever the lens, so nothing shifts when flipping: front lenses have no flash on most
       // phones, so there it's dimmed and off.
       val (next, glyph) = when (flash) { "off" -> "auto" to I.flashOff; "auto" -> "on" to I.flashAuto; else -> "off" to I.flash }
       Box(Modifier.graphicsLayer { alpha = if (selfie) 0.35f else 1f }) {
-        Tap(if (selfie) I.flashOff else glyph, if (selfie) "No flash on the front camera" else "Flash $flash") { if (!selfie) flash = next }
+        Tap(if (selfie) I.flashOff else glyph, if (selfie) "No flash on the front camera" else "Flash $flash", tint = c.ink) { if (!selfie) flash = next }
       }
-      if (hasFrontLens) Tap(I.cameraFlipOutline, if (selfie) "Switch to back camera" else "Switch to front camera") { selfie = !selfie }
-      if (detecting) {
-        val tint by animateColorAsState(if (auto) ScanUi.accent else ScanUi.text, label = "auto")
-        Row(Modifier.tap(scaleTo = 0.92f) { auto = !auto }.padding(horizontal = 10.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-          Icon(if (auto) I.cameraIris else I.gestureTap, 20.dp, tint)
-          Spacer(Modifier.size(4.dp))
-          T(if (auto) "Auto" else "Manual", Type.med, tint)
-        }
-      }
+      if (hasFrontLens) Tap(I.cameraFlipOutline, if (selfie) "Switch to back camera" else "Switch to front camera", tint = c.ink) { selfie = !selfie }
+      Tap(I.imageMultipleOutline, "Import photos", tint = c.ink, onClick = importPhotos)
     }
 
     // The preview fills all the space, cropping the 3:4 camera frame at its edges like a camera app (the photo keeps
@@ -393,9 +390,9 @@ private fun Capture(
               val oy = (size.height - fh) / 2
               val pts = (0 until 4).map { Offset(ox + cs[it * 2] * fw, oy + cs[it * 2 + 1] * fh) }
               val path = Path().apply { moveTo(pts[0].x, pts[0].y); pts.drop(1).forEach { lineTo(it.x, it.y) }; close() }
-              drawPath(path, ScanUi.accentSoft)
-              drawPath(path, ScanUi.accent, style = Stroke(2.5.dp.toPx()))
-              pts.forEach { drawCircle(Color.White, 9.dp.toPx(), it); drawCircle(ScanUi.accent, 9.dp.toPx(), it, style = Stroke(4.dp.toPx())) }
+              drawPath(path, Brand.mint.copy(alpha = 0.15f))
+              drawPath(path, Brand.mint, style = Stroke(2.5.dp.toPx()))
+              pts.forEach { drawCircle(Color.White, 9.dp.toPx(), it); drawCircle(Brand.mint, 9.dp.toPx(), it, style = Stroke(4.dp.toPx())) }
             }
           }
         } else {
@@ -446,14 +443,27 @@ private fun Capture(
       }
     }
 
+    Column(Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))) {
+    if (detecting) {
+      Row(Modifier.fillMaxWidth().padding(top = 10.dp, start = 34.dp, end = 34.dp)
+        .background(c.accentSoft, CircleShape).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        listOf(true to "Auto", false to "Manual").forEach { (value, label) ->
+          Box(Modifier.weight(1f).tap(shape = CircleShape, label = label) { auto = value }
+            .background(if (auto == value) c.accent else Color.Transparent, CircleShape).padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center) {
+            T(label, Type.bold, if (auto == value) c.onAccent else c.ink)
+          }
+        }
+      }
+    }
     if (retake == null) {
       Row(
-        Modifier.fillMaxWidth().height(58.dp).horizontalScroll(rememberScrollState()).padding(horizontal = 24.dp),
+        Modifier.fillMaxWidth().height(44.dp).horizontalScroll(rememberScrollState()).padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(26.dp), verticalAlignment = Alignment.CenterVertically,
       ) {
         MODES.forEach { m ->
           val on = m == kind
-          val color by animateColorAsState(if (on) ScanUi.accent else ScanUi.text, label = "mode")
+          val color by animateColorAsState(if (on) c.accentInk else c.sub, label = "mode")
           Column(Modifier.tap(scaleTo = 0.92f) { kind = m }, horizontalAlignment = Alignment.CenterHorizontally) {
             T(KIND_LABEL.getValue(m), (if (on) Type.bold else Type.med).copy(fontSize = 15.5.sp), color)
             val dot by animateFloatAsState(if (on) 1f else 0f, spring(0.5f), label = "dot")
@@ -464,10 +474,13 @@ private fun Capture(
     }
 
     Row(Modifier.fillMaxWidth().height(110.dp).padding(bottom = 6.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-      Tap(I.imageMultipleOutline, "Import from gallery", 28, onClick = importPhotos)
-      val inner by animateColorAsState(if (steady) ScanUi.accent else Color.White, label = "shutter")
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Tap(I.imageMultipleOutline, "Import from gallery", 26, tint = c.accentInk, onClick = importPhotos)
+        T("Import photos", Type.num, c.ink)
+      }
+      val inner by animateColorAsState(if (steady) Brand.mint else c.surface, label = "shutter")
       Box(
-        Modifier.size(78.dp).tap(enabled = !busy && granted, shape = CircleShape, scaleTo = 0.9f, label = "Capture", onClick = shoot).border(4.dp, Color.White, CircleShape),
+        Modifier.size(78.dp).tap(enabled = !busy && granted, shape = CircleShape, scaleTo = 0.9f, label = "Capture", onClick = shoot).background(c.accentSoft, CircleShape).border(5.dp, Brand.primary, CircleShape),
         contentAlignment = Alignment.Center,
       ) { if (busy) Spinner(ScanUi.accent) else Box(Modifier.size(62.dp).background(inner, CircleShape)) }
       val last = doc.pages.takeLast(3)
@@ -483,6 +496,7 @@ private fun Capture(
           T("${doc.pages.size}", Type.label.copy(fontSize = 12.sp), ScanUi.onAccent, Modifier.align(Alignment.TopEnd).offset(6.dp, (-4).dp).background(ScanUi.accent, CircleShape).padding(horizontal = 7.dp, vertical = 1.dp))
         }
       }
+    }
     }
   }
 }

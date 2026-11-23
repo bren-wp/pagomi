@@ -53,7 +53,16 @@ jobs:
           disable-animations: true
           disable-linux-hw-accel: auto
           emulator-boot-timeout: 1800
-          script: ./gradlew :app:connectedDebugAndroidTest -PsideBySide --no-daemon --stacktrace
+          script: |
+            ./gradlew :app:connectedDebugAndroidTest -PsideBySide --no-daemon --stacktrace
+            python3 scripts/capture_ci_screens.py
+      - name: Upload genuine Android screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pagomi-actual-screen-captures
+          path: build/visual-evidence/
+          if-no-files-found: warn
       - name: Upload device test results
         if: always()
         uses: actions/upload-artifact@v7

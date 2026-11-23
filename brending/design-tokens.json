@@ -1,0 +1,38 @@
+{
+  "name": "pagomi.",
+  "title": "pagomi. – PDF Scanner & Editor",
+  "tagline": "Scan. Edit. Create.",
+  "colors": {
+    "ink": "#192B36",
+    "violet": "#6459D8",
+    "lavender": "#E8E5FF",
+    "mint": "#CDF2DE",
+    "paper": "#F6F7F4"
+  },
+  "typography": {
+    "display": "Sora",
+    "body": "Inter",
+    "current": "Poppins"
+  },
+  "spacingDp": [
+    4,
+    8,
+    12,
+    16,
+    18,
+    24,
+    32
+  ],
+  "radiusDp": {
+    "control": 16,
+    "card": 22,
+    "hero": 26
+  },
+  "navigation": [
+    "Home",
+    "Scan",
+    "Files",
+    "Tools",
+    "Settings"
+  ]
+}

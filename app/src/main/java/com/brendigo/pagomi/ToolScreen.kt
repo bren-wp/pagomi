@@ -111,7 +111,7 @@ private fun DetailsEditor(p: EditorProps) {
 private fun stripPdf(name: String) = name.replace(Regex("\\.pdf$", RegexOption.IGNORE_CASE), "")
 
 @Composable
-fun ToolScreen(id: String, resume: Boolean) {
+fun ToolScreen(id: String, resume: Boolean, sourcePath: String = "", sourceName: String = "") {
   val nav = LocalNav.current
   val tool = toolById(id)
   if (tool == null) {
@@ -161,6 +161,13 @@ fun ToolScreen(id: String, resume: Boolean) {
       locked = need
     }
     Unit
+  }
+  LaunchedEffect(sourcePath, sourceName) {
+    if (!resume && sourcePath.isNotBlank() && files.isEmpty()) {
+      val source = File(sourcePath)
+      if (source.isFile) addFiles(listOf(Picked(sourceName.ifBlank { source.name }, source.path, source.length())))
+      else error = "This document is no longer available. Choose another PDF."
+    }
   }
   val pickDevice = { scope.launch { addFiles(pickPdfs(multi)) }; Unit }
 
@@ -212,15 +219,15 @@ fun ToolScreen(id: String, resume: Boolean) {
     BackBar("Tools") { nav.back() }
     // The tool's own glow card, like Home's: its picture on a Cool Blue tile (drawn in light colours whatever the theme,
     // so it reads on the dark card), the name in white and the description in Cool Blue.
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(Radius.card)).glow(c.hero, 0.95f, 1.15f).padding(18.dp)) {
+    Column(Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(Radius.card)).border(1.dp, c.line, RoundedCornerShape(Radius.card)).padding(18.dp)) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         CompositionLocalProvider(LocalPalette provides LightPalette) { ArtTile(tool.id, 64.dp, Modifier.sharedArt(tool.id), bg = Brand.cool) }
         Spacer(Modifier.size(14.dp))
-        T(tool.title, Type.title.copy(fontSize = 23.sp, lineHeight = 30.sp), Color.White, Modifier.weight(1f))
+        T(tool.title, Type.title.copy(fontSize = 23.sp, lineHeight = 30.sp), c.ink, Modifier.weight(1f))
         val pinned = tool.id in Pins.ids
-        IconBtn(if (pinned) I.pin else I.pinOutline, 22.dp, if (pinned) Brand.tangerine else Color.White, if (pinned) "Unpin from Home" else "Pin to top of Home") { Pins.toggle(tool.id) }
+        IconBtn(if (pinned) I.pin else I.pinOutline, 22.dp, if (pinned) c.accent else c.sub, if (pinned) "Unpin from Home" else "Pin to top of Home") { Pins.toggle(tool.id) }
       }
-      T(tool.desc, Type.body, Brand.cool.copy(alpha = 0.9f), Modifier.padding(top = 14.dp))
+      T(tool.desc, Type.body, c.sub, Modifier.padding(top = 14.dp))
     }
 
     StepHead(1, if (multi) "Choose PDFs" else "Choose a PDF")
@@ -262,10 +269,10 @@ fun ToolScreen(id: String, resume: Boolean) {
     }
 
     AnimatedVisibility(error.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-      Row(Modifier.padding(top = 14.dp).fillMaxWidth().background(c.accentSoft, RoundedCornerShape(Radius.control)).padding(12.dp)) {
-        Icon(I.alertCircleOutline, 18.dp, c.accent)
+      Row(Modifier.padding(top = 14.dp).fillMaxWidth().background(Brand.danger.copy(alpha = 0.09f), RoundedCornerShape(Radius.control)).padding(12.dp)) {
+        Icon(I.alertCircleOutline, 18.dp, if (c.dark) Color(0xFFFFB4B8) else Brand.danger)
         Spacer(Modifier.size(8.dp))
-        T(error, Type.small.copy(fontSize = 14.sp), c.accentInk)
+        T(error, Type.small.copy(fontSize = 14.sp), if (c.dark) Color(0xFFFFB4B8) else Brand.danger)
       }
     }
 
@@ -326,9 +333,7 @@ private fun PickerCard(title: String, sub: String, glyph: Int, tileBg: Color, ti
   val shape = RoundedCornerShape(Radius.group)
   Column(
     modifier.tap(pressed = c.sunken, shape = shape, scaleTo = 0.96f, onClick = onClick)
-      .drawBehind {
-        drawRoundRect(line, cornerRadius = CornerRadius(16.dp.toPx()), style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))))
-      }
+      .background(c.surface, shape).border(1.dp, line, shape)
       .padding(16.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {

@@ -11,6 +11,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -149,12 +151,13 @@ fun PdfViewerScreen(path: String, name: String) {
 
   var thumbs by remember { mutableStateOf(false) }
   var jumping by remember { mutableStateOf(false) }
+  var editing by remember { mutableStateOf(false) }
   val pages = doc?.pageCount ?: 0
   val page = (state.firstVisiblePage + 1).coerceIn(1, maxOf(1, pages))
 
   Column(Modifier.fillMaxSize().background(c.bg)) {
     AnimatedContent(searching, Modifier.statusBarsPadding(), label = "viewerBar", transitionSpec = { fadeIn(tween(160)) togetherWith fadeOut(tween(120)) }) { s ->
-      Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+      Row(Modifier.fillMaxWidth().background(c.surface).height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         if (s) {
           IconBtn(I.arrowLeft, label = "Close search") { searching = false; query = "" }
           Field(query, { query = it }, Modifier.weight(1f), "Search in this PDF", focus = searchFocus)
@@ -166,7 +169,10 @@ fun PdfViewerScreen(path: String, name: String) {
           IconBtn(I.chevronDown, label = "Next match", enabled = matches.isNotEmpty()) { at = (at + 1) % matches.size }
         } else {
           IconBtn(I.arrowLeft, label = "Back") { nav.back() }
-          Marquee(stem(name), Type.bold.copy(fontSize = Type.bold.fontSize * 1.1f), c.ink, Modifier.weight(1f).padding(horizontal = 4.dp))
+          Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {
+            Marquee(name, Type.bold, c.ink)
+            if (pages > 0) T("Page $page of $pages", Type.num, c.sub)
+          }
           IconBtn(I.magnify, label = "Search", enabled = doc != null) { searching = true }
           IconBtn(I.shareVariantOutline, label = "Share") { share(path, name) }
           IconBtn(I.openInNew, label = "Open in another app") { openExternally(path, name) }
@@ -174,32 +180,70 @@ fun PdfViewerScreen(path: String, name: String) {
       }
     }
 
-    Box(Modifier.weight(1f).fillMaxWidth().background(c.sunken)) {
+    Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp).clip(RoundedCornerShape(Radius.card)).background(c.sunken)) {
       when {
         problem.isNotEmpty() -> T(problem, Type.body, c.sub, Modifier.align(Alignment.Center).padding(32.dp))
         doc == null -> Spinner(c.accent, modifier = Modifier.align(Alignment.Center))
       }
       PdfViewer(
         doc, state, Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp),
+        contentPadding = PaddingValues(top = 12.dp, bottom = 64.dp),
         onUrlLinkClicked = { uri -> openUrl(uri.toString()); true },
       )
       SelectionHandles(state, c.accent)
       if (doc != null) {
         // The page you're on, and the way to every other: tap the number to jump, the grid for thumbnails.
         Row(
-          Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 16.dp)
-            .background(c.panel.copy(alpha = 0.92f), CircleShape).padding(4.dp),
+          Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
+            .background(c.surface, CircleShape).border(1.dp, c.lineStrong, CircleShape).padding(4.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
           T(
-            "Page $page of $pages", Type.label, c.onPanel,
+            "Page $page of $pages", Type.label, c.ink,
             Modifier.tap(shape = CircleShape, scaleTo = 0.94f, label = "Go to page") { jumping = true }.padding(horizontal = 14.dp, vertical = 8.dp),
           )
           Box(
             Modifier.size(36.dp).tap(shape = CircleShape, scaleTo = 0.9f, label = "Page thumbnails") { thumbs = true }.background(c.accent, CircleShape),
             contentAlignment = Alignment.Center,
-          ) { Icon(I.viewGridOutline, 18.dp, Brand.cherry) }
+          ) { Icon(I.viewGridOutline, 18.dp, c.onAccent) }
+        }
+      }
+    }
+    Column(Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+      .navigationBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp)) {
+      Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        T("Edit PDF", Type.bold, c.ink, Modifier.weight(1f))
+        T("All tools", Type.label, c.accentInk, Modifier.tap(enabled = doc != null, label = "All editing tools") { editing = true }.padding(10.dp))
+      }
+      Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val actions = listOf(
+          Triple("fillSign", "Text & Sign", I.drawPen),
+          Triple("organize", "Pages", I.viewGridOutline),
+          Triple("crop", "Crop", I.crop),
+          Triple("redact", "Redact", I.eraser),
+          Triple("rotate", "Rotate", I.rotateRight),
+        )
+        actions.forEach { (id, title, glyph) ->
+          Column(Modifier.size(width = 76.dp, height = 68.dp)
+            .tap(enabled = doc != null, shape = RoundedCornerShape(16.dp), label = title) { nav.tool(id, sourcePath = path, sourceName = name) }
+            .background(c.accentSoft, RoundedCornerShape(16.dp)).padding(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Icon(glyph, 22.dp, if (doc != null) c.accentInk else c.faint)
+            Spacer(Modifier.height(4.dp))
+            T(title, Type.num, if (doc != null) c.ink else c.faint, align = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 2)
+          }
+        }
+      }
+    }
+  }
+
+  if (editing) AppDialog({ editing = false }, "Edit document", "Choose how you want to edit this PDF.") {
+    Column(Modifier.fillMaxWidth()) {
+      listOf("fillSign", "organize", "crop", "redact", "rotate", "watermark", "pageNumbers", "compress", "ocr", "password", "metadata").mapNotNull(::toolById).forEach { tool ->
+        MenuRow(I.fileDocumentEditOutline, tool.title) {
+          editing = false
+          nav.tool(tool.id, sourcePath = path, sourceName = name)
         }
       }
     }

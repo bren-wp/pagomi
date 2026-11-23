@@ -137,41 +137,35 @@ fun Review(
     if (gone) onAddMore() // nothing left: back to the camera, like Adobe
   }
 
-  Column(Modifier.fillMaxSize().background(ScanUi.bg).statusBarsPadding().navigationBarsPadding()) {
+  Column(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding()) {
     AnimatedContent(selecting, label = "bar", transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) }) { sel ->
-      Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+      Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         if (sel) {
-          Tap(I.close, "Cancel selection") { selected = emptyList() }
-          T("${selected.size} selected", Type.bold.copy(fontSize = 16.sp), ScanUi.text, Modifier.weight(1f))
-          T("Select all", Type.bold, ScanUi.accent, Modifier.tap { selected = pages.map { it.id } }.padding(horizontal = 12.dp, vertical = 12.dp))
+          Tap(I.close, "Cancel selection", tint = c.ink) { selected = emptyList() }
+          T("${selected.size} selected", Type.bold.copy(fontSize = 16.sp), c.ink, Modifier.weight(1f))
+          T("Select all", Type.bold, c.accent, Modifier.tap { selected = pages.map { it.id } }.padding(horizontal = 12.dp, vertical = 12.dp))
         } else {
-          Tap(I.arrowLeft, "Back", onClick = onClose)
+          Tap(I.arrowLeft, "Back", tint = c.ink, onClick = onClose)
           Row(Modifier.weight(1f).tap(scaleTo = 0.97f, label = "Rename") { modal = "rename" }.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            T(doc.name, Type.bold.copy(fontSize = 16.sp), ScanUi.text, Modifier.weight(1f, fill = false), maxLines = 1)
+            Column(Modifier.weight(1f)) {
+              T("Review Scan", Type.title.copy(fontSize = 20.sp), c.ink, maxLines = 1)
+              T(doc.name, Type.num, c.sub, maxLines = 1)
+            }
             Spacer(Modifier.size(6.dp))
-            Icon(I.pencilOutline, 15.dp, ScanUi.dim)
+            Icon(I.pencilOutline, 15.dp, c.sub)
           }
-          val ready = doc.isRendered && !saving
-          Row(
-            Modifier.padding(end = 4.dp).tap(enabled = ready, shape = CircleShape, scaleTo = 0.94f) { scope.launch { saving = true; try { onSave() } finally { saving = false } } }
-              .graphicsLayer { alpha = if (ready) 1f else 0.6f }.background(ScanUi.accent, CircleShape).padding(horizontal = 14.dp, vertical = 9.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            if (!ready) Spinner(ScanUi.onAccent, 16.dp) else Icon(I.filePdfBox, 18.dp, ScanUi.onAccent)
-            Spacer(Modifier.size(6.dp))
-            T(if (doc.pdf != null) "Update PDF" else "Save PDF", Type.bold, ScanUi.onAccent)
-          }
+
         }
       }
     }
 
-    Box(Modifier.weight(1f).fillMaxWidth()) {
+    Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 14.dp).clip(RoundedCornerShape(24.dp)).background(c.accentSoft)) {
       HorizontalPager(pager, Modifier.fillMaxSize(), key = { pages.getOrNull(it)?.id ?: it }) { i ->
         BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-          pages.getOrNull(i)?.let { PagePreview(it, maxWidth - 40.dp, maxHeight - 40.dp, flat = false) }
+          pages.getOrNull(i)?.let { PagePreview(it, (maxWidth - 28.dp).coerceAtLeast(1.dp), (maxHeight - 40.dp).coerceAtLeast(1.dp), flat = false) }
         }
       }
-      T("${index + 1} / ${pages.size}", Type.num, ScanUi.text, Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp).background(ScanUi.raised, CircleShape).border(0.6.dp, ScanUi.line, CircleShape).padding(horizontal = 12.dp, vertical = 4.dp))
+      T("${index + 1} / ${pages.size}", Type.num, c.ink, Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp).background(c.accentSoft, CircleShape).border(0.6.dp, c.line, CircleShape).padding(horizontal = 12.dp, vertical = 4.dp))
     }
 
     val strip = rememberLazyListState()
@@ -179,9 +173,9 @@ fun Review(
     LazyRow(state = strip, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
       itemsIndexed(pages, key = { _, p -> p.id }) { i, p ->
         val on = if (selecting) p.id in selected else i == index
-        val border by animateColorAsState(if (on) ScanUi.accent else Color.Transparent, label = "thumb")
+        val border by animateColorAsState(if (on) c.accent else Color.Transparent, label = "thumb")
         Box(
-          Modifier.animateItem().size(62.dp, 76.dp).clip(RoundedCornerShape(8.dp)).background(ScanUi.panel).border(2.dp, border, RoundedCornerShape(8.dp))
+          Modifier.animateItem().size(62.dp, 76.dp).clip(RoundedCornerShape(8.dp)).background(c.surface).border(2.dp, border, RoundedCornerShape(8.dp))
             .pointerInput(p.id, selecting) {
               detectTapGestures(onLongPress = { toggle(p.id) }) { if (selecting) toggle(p.id) else scope.launch { pager.animateScrollToPage(i) } }
             },
@@ -190,17 +184,17 @@ fun Review(
           PagePreview(p, 48.dp, 62.dp, flat = true)
           if (selecting) {
             Box(
-              Modifier.align(Alignment.TopEnd).padding(3.dp).size(20.dp).background(if (p.id in selected) ScanUi.accent else ScanUi.scrim, CircleShape).border(2.dp, Color.White, CircleShape),
+              Modifier.align(Alignment.TopEnd).padding(3.dp).size(20.dp).background(if (p.id in selected) c.accent else ScanUi.scrim, CircleShape).border(2.dp, Color.White, CircleShape),
               contentAlignment = Alignment.Center,
-            ) { if (p.id in selected) Icon(I.check, 13.dp, ScanUi.onAccent) }
+            ) { if (p.id in selected) Icon(I.check, 13.dp, c.onAccent) }
           }
         }
       }
       if (!selecting) item {
         Box(
-          Modifier.size(62.dp, 76.dp).tap(scaleTo = 0.92f, label = "Add pages", onClick = onAddMore).border(2.dp, ScanUi.accent.copy(alpha = 0.45f), RoundedCornerShape(8.dp)),
+          Modifier.size(62.dp, 76.dp).tap(scaleTo = 0.92f, label = "Add pages", onClick = onAddMore).border(2.dp, c.accent.copy(alpha = 0.45f), RoundedCornerShape(8.dp)),
           contentAlignment = Alignment.Center,
-        ) { Icon(I.plus, 24.dp, ScanUi.accent) }
+        ) { Icon(I.plus, 24.dp, c.accent) }
       }
     }
 
@@ -228,9 +222,17 @@ fun Review(
       }
     }
 
+    if (!selecting && sheet.isEmpty()) {
+      Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FILTERS.forEach { (id, _) ->
+          val label = when (id) { "original" -> "Original"; "auto" -> "Auto"; "light" -> "Light"; "gray" -> "Gray"; else -> "Whiteboard" }
+          Chip(label, current.shots[0].filter == id) { editShots(listOf(current.id)) { shot, _ -> shot.copy(filter = id) } }
+        }
+      }
+    }
     val tools = listOf(
       Triple(I.plusBoxMultipleOutline, "Add", selecting) to onAddMore,
-      Triple(I.cameraRetakeOutline, "Retake", selecting) to { onRetake(current) },
       Triple(I.crop, "Crop", selecting) to { modal = "crop" },
       // ponytail: rotating clears that page's cleanup/markup strokes; transform the strokes instead if people mind.
       Triple(I.rotateRight, "Rotate", false) to { editShots(targets) { s, _ -> s.copy(rotation = (s.rotation + 90) % 360, strokes = emptyList()) } },
@@ -243,20 +245,28 @@ fun Review(
       Triple(I.restore, "Reset", false) to { modal = "reset" },
       Triple(I.deleteOutline, "Delete", false) to { modal = "delete" },
     )
-    Box(Modifier.fillMaxWidth().height(0.6.dp).background(ScanUi.line))
-    Row(Modifier.fillMaxWidth().background(ScanUi.panel).horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 8.dp)) {
+    Box(Modifier.fillMaxWidth().height(0.6.dp).background(c.line))
+    Row(Modifier.fillMaxWidth().background(c.surface).horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 8.dp)) {
       tools.forEach { (spec, press) ->
         val (glyph, label, disabled) = spec
         val active = label.lowercase() == sheet
-        val tint by animateColorAsState(if (active) ScanUi.accent else ScanUi.text, label = "tool")
+        val tint by animateColorAsState(if (active) c.accent else c.ink, label = "tool")
         Column(
           Modifier.width(70.dp).graphicsLayer { alpha = if (disabled) 0.3f else 1f }.tap(enabled = !disabled, scaleTo = 0.88f, onClick = press).padding(vertical = 4.dp),
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          val pill by animateColorAsState(if (active) ScanUi.accentSoft else Color.Transparent, label = "toolPill")
-          Box(Modifier.size(48.dp, 30.dp).background(pill, CircleShape), contentAlignment = Alignment.Center) { Icon(glyph, 24.dp, tint) }
+          val pill by animateColorAsState(if (active) c.accentSoft else Color.Transparent, label = "toolPill")
+          Box(Modifier.size(48.dp, 34.dp).background(if (active) pill else c.accentSoft.copy(alpha = 0.55f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Icon(glyph, 24.dp, tint) }
           T(label, Type.med.copy(fontSize = 11.5.sp), tint, Modifier.padding(top = 3.dp))
         }
+      }
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+      horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+      Btn("Retake", Modifier.weight(1f), I.cameraRetakeOutline, BtnKind.Secondary, enabled = !selecting && !saving) { onRetake(current) }
+      Btn(if (doc.pdf != null) "Update PDF" else "Save", Modifier.weight(1f), I.filePdfBox,
+        busy = saving, enabled = doc.isRendered && !saving) {
+        scope.launch { saving = true; try { onSave() } finally { saving = false } }
       }
     }
   }

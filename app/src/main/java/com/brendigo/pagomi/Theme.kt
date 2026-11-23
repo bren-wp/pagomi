@@ -57,11 +57,11 @@ data class Palette(
 )
 
 val LightPalette = Palette(
-  bg = Brand.paper, surface = Color(0xFFFFFFFF), sunken = Color(0xFFE9ECE8), page = Color(0xFFFFFFFF),
-  ink = Brand.cherry, sub = Color(0xFF52636E), faint = Color(0xFF78858E), line = Color(0xFFE1E5E1),
+  bg = Brand.paper, surface = Color(0xFFFFFFFF), sunken = Brand.primarySoft, page = Color(0xFFFFFFFF),
+  ink = Brand.cherry, sub = Color(0xFF52636E), faint = Color(0xFF78858E), line = Color(0xFFE2DFF2),
   lineStrong = Color(0xFFCFD7D9), accent = Brand.tangerine, accentSoft = Brand.primarySoft, accentInk = Color(0xFF5448C3),
   onInk = Color(0xFFFFFFFF),
-  hero = listOf(Brand.cherry, Color(0xFF4E459F), Brand.tangerine),
+  hero = listOf(Color(0xFF8175EE), Brand.primary, Color(0xFF403978)),
   panel = Brand.cherry, onPanel = Color(0xFFFFFFFF), onPanelSub = Color(0xFFBECBD2),
   dark = false,
 )
@@ -130,10 +130,10 @@ object Type {
 // Deliberately not one radius for everything: small things are tighter.
 object Radius {
   val tile = 10.dp
-  val control = 12.dp
+  val control = 16.dp
   val group = 16.dp
   val card = 22.dp
-  val hero = 30.dp
+  val hero = 26.dp
 }
 
 enum class ThemePref { System, Light, Dark }
