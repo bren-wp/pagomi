@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,9 +27,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ModalBottomSheet
@@ -198,10 +194,12 @@ fun PdfViewerScreen(path: String, name: String) {
             .background(c.surface, CircleShape).border(1.dp, c.lineStrong, CircleShape).padding(4.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
+          IconBtn(I.chevronLeft, 20.dp, c.accentInk, "Previous page", enabled = page > 1) { scope.launch { state.scrollToPage(page - 2) } }
           T(
             "Page $page of $pages", Type.label, c.ink,
             Modifier.tap(shape = CircleShape, scaleTo = 0.94f, label = "Go to page") { jumping = true }.padding(horizontal = 14.dp, vertical = 8.dp),
           )
+          IconBtn(I.chevronRight, 20.dp, c.accentInk, "Next page", enabled = page < pages) { scope.launch { state.scrollToPage(page) } }
           Box(
             Modifier.size(36.dp).tap(shape = CircleShape, scaleTo = 0.9f, label = "Page thumbnails") { thumbs = true }.background(c.accent, CircleShape),
             contentAlignment = Alignment.Center,
@@ -292,24 +290,34 @@ private fun SelectionHandles(state: PdfViewerState, color: androidx.compose.ui.g
 private fun Thumbnails(path: String, pages: Int, current: Int, onPick: (Int) -> Unit) {
   var shots by remember { mutableStateOf<List<Thumb>?>(null) }
   LaunchedEffect(path) { shots = withContext(Dispatchers.IO) { runCatching { renderThumbs(path, 240) }.getOrNull() } } // locked files: numbers only
-  LazyVerticalGrid(
-    GridCells.Fixed(3), Modifier.fillMaxWidth().height(520.dp).navigationBarsPadding(),
-    contentPadding = PaddingValues(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp),
-  ) {
-    itemsIndexed((0 until pages).toList()) { _, i ->
-      val t = shots?.getOrNull(i)
-      val img = rememberBitmap(t?.path, 300)
-      Column(Modifier.tap(scaleTo = 0.94f, label = "Page ${i + 1}") { onPick(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
-        val shape = RoundedCornerShape(6.dp)
-        Box(
-          Modifier.fillMaxWidth().aspectRatio(if (t != null) t.width.toFloat() / t.height else 0.71f).clip(shape).background(c.page)
-            .border(if (i == current) 2.5.dp else 0.6.dp, if (i == current) c.accent else c.lineStrong, shape),
-          contentAlignment = Alignment.Center,
-        ) {
-          if (img != null) Image(img, "Page ${i + 1}", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-          else T("${i + 1}", Type.title, c.faint)
+  val perPage = 6
+  val count = ((pages + perPage - 1) / perPage).coerceAtLeast(1)
+  var group by remember(current) { mutableIntStateOf((current / perPage).coerceIn(0, count - 1)) }
+  val indices = (group * perPage until minOf(pages, (group + 1) * perPage)).toList()
+  PagedColumn(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 8.dp)) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+      IconBtn(I.chevronLeft, 24.dp, c.accentInk, "Previous thumbnails", enabled = group > 0) { group-- }
+      T("Pages ${if (pages == 0) 0 else group * perPage + 1}–${minOf(pages, (group + 1) * perPage)} of $pages",
+        Type.label, c.ink, Modifier.weight(1f), align = androidx.compose.ui.text.style.TextAlign.Center)
+      IconBtn(I.chevronRight, 24.dp, c.accentInk, "Next thumbnails", enabled = group + 1 < count) { group++ }
+    }
+    indices.chunked(3).forEach { row ->
+      Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        row.forEach { i ->
+          val t = shots?.getOrNull(i)
+          val img = rememberBitmap(t?.path, 300)
+          Column(Modifier.weight(1f).tap(scaleTo = 0.94f, label = "Page ${i + 1}") { onPick(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
+            val shape = RoundedCornerShape(10.dp)
+            Box(Modifier.fillMaxWidth().height(110.dp).clip(shape).background(c.page)
+              .border(if (i == current) 2.dp else 1.dp, if (i == current) c.accent else c.lineStrong, shape),
+              contentAlignment = Alignment.Center) {
+              if (img != null) Image(img, "Page ${i + 1}", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+              else T("${i + 1}", Type.title, c.faint)
+            }
+            T("${i + 1}", Type.num, if (i == current) c.accent else c.sub, Modifier.padding(top = 4.dp))
+          }
         }
-        T("${i + 1}", Type.num, if (i == current) c.accent else c.sub, Modifier.padding(top = 4.dp))
+        repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
       }
     }
   }

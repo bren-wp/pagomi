@@ -163,3 +163,10 @@ Do not claim 1:1 completion or Play-ready status merely because CI passes. Never
 | Screen/state | Commit | Reference/hash | Device/API/viewport/theme | Screenshot | Diff | Test | Accepted |
 |---|---|---|---|---|---|---|---|
 | Example (not evidence) | — | — | — | — | — | — | No |
+
+## Fixed-screen requirement (0.1.9)
+
+- [ ] No free vertical swipe on app screens, tool forms, settings, onboarding, pickers, lists or modal content. Overflow remains accessible via explicit Previous/Next controls, with no unreachable actions.
+- [ ] No visible developer labels (including `Local`, `Debug`, internal paths, raw exception messages or stack traces).
+- [ ] Verify small and large screens, font scaling, keyboard, TalkBack and every page boundary; PDF content navigation and zoom must stay usable.
+- [ ] Recapture and compare against approved references before claiming pixel-perfect acceptance.
