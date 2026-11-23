@@ -1,0 +1,82 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: android-pagomi-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Check pagomi. identity and license attribution
+        shell: bash
+        run: |
+          test -f app/src/main/java/com/brendigo/pagomi/MainActivity.kt
+          test -f app/src/main/java/com/brendigo/pagomi/Scanner.kt
+          test -f app/src/main/assets/docaligner_lc100.onnx
+          grep -q 'SammyZi' LICENSE
+          grep -q 'com.brendigo.pagomi' app/build.gradle.kts
+          grep -q '<string name="app_name">pagomi.</string>' app/src/main/res/values/themes.xml
+          test ! -e app/debug.keystore
+          ! grep -q MANAGE_EXTERNAL_STORAGE app/src/main/AndroidManifest.xml
+      - name: Install Android SDK platform
+        shell: bash
+        run: |
+          SDKMGR=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -type f -name sdkmanager | head -n 1)
+          test -n "$SDKMGR"
+          yes | "$SDKMGR" --licenses >/dev/null || true
+          "$SDKMGR" "platforms;android-36" "build-tools;36.0.0"
+      - name: Compile Android and execute unit tests
+        run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
+      - name: Check native 16 KB memory-page alignment
+        run: python3 scripts/check_native_16k.py app/build/outputs/apk/debug/app-debug.apk
+      - name: Run Android lint
+        run: |
+          if ! ./gradlew :app:lintDebug --no-daemon --stacktrace; then
+            find app/build -name 'lint-results-debug.txt' -exec cat {} \;
+            exit 1
+          fi
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pagomi-lint-report
+          path: |
+            app/build/reports/lint-results-debug.*
+            app/build/intermediates/lint_intermediate_text_report/debug/
+          if-no-files-found: ignore
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pagomi-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+      - name: Build unsigned release review AAB
+        run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
+      - name: Upload unsigned review AAB
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pagomi-unsigned-review-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

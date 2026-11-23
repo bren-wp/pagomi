@@ -1,0 +1,28 @@
+{
+  "brand": "pagomi.",
+  "displayName": "pagomi. – PDF Scanner & Editor",
+  "applicationId": "com.brendigo.pagomi",
+  "supportUrl": "https://github.com/bren-wp/pagomi/issues",
+  "colors": {
+    "background": "#F6F7F4",
+    "ink": "#192B36",
+    "primary": "#6459D8",
+    "accentSoft": "#E8E5FF",
+    "mint": "#CDF2DE"
+  },
+  "colorReplacements": {
+    "0xFFFF5C34": "0xFF6459D8",
+    "0xFFFF6A45": "0xFF8B83F4",
+    "0xFF351E28": "0xFF192B36",
+    "0xFFD7EFFF": "0xFFCDF2DE",
+    "0xFFF6F2EE": "0xFFF6F7F4",
+    "0xFFEFE9E4": "0xFFE9ECE8",
+    "0xFFE9E1DC": "0xFFE1E5E1",
+    "0xFFFFE4DB": "0xFFE8E5FF",
+    "0xFFB83A1C": "0xFF5448C3",
+    "0xFF8C2F2A": "0xFF4E459F",
+    "0xFF6B2A1E": "0xFF403978",
+    "0xFFFFB7A2": "0xFFC2BDFF",
+    "0xFF2B231F": "0xFF272538"
+  }
+}

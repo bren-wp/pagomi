@@ -1,0 +1,17 @@
+Meet pagomi. — your everyday PDF scanner and editor.
+
+Turn paperwork into clean, searchable PDFs. Capture documents with your camera, straighten pages, crop and enhance scans.
+
+Everything your documents need:
+• Scan receipts, notes, forms, books and IDs.
+• Turn scans into searchable PDFs with on-device OCR.
+• Merge, split, rotate, arrange and compress PDFs.
+• Add signatures, watermarks and page numbers.
+• Redact sensitive content and protect PDFs with passwords.
+• Browse documents with Android's system file picker.
+• Organize, export and share your saved documents.
+• Optionally synchronize PDFs with your own Google Drive.
+
+Designed for clarity. Core scanning and PDF tools work on your device; optional Drive sync needs an internet connection. No mandatory sign-up, ads or tracking.
+
+Mathematical problem solving is not included in the current version.
