@@ -9,7 +9,7 @@ The product brand is always written **pagomi.** (lowercase, including the final 
 - Soft mint: `#CDF2DE`
 - Accent tint: `#E8E5FF`
 
-The source of truth for the upstream import is [brand.json](brand.json). The resulting Android application's runtime color tokens are in `app/src/main/java/com/brendigo/pagomi/Theme.kt` (`Brand`, `LightPalette`, `DarkPalette` and `ScanUi`). When updating styling after import, edit runtime tokens there and keep `brand.json` in sync. Text display name lives in `app/src/main/res/values/themes.xml` and the product identity constants live in `Theme.kt`.
+The source of truth for the one-time upstream import was [brand.json](brand.json). The resulting Android application's runtime color tokens are in `app/src/main/java/com/brendigo/pagomi/Theme.kt` (`Brand`, `LightPalette`, `DarkPalette` and `ScanUi`). When updating styling after import, edit runtime tokens there and keep `brand.json` in sync. Text display name lives in `app/src/main/res/values/themes.xml` and the product identity constants live in `Theme.kt`.
 
 The launcher artwork is a custom scalable Android vector at `branding/assets/pagomi_launcher.xml`, imported as `app/src/main/res/drawable/pagomi_launcher.xml`. It is original artwork; do not restore upstream icons.
 
@@ -17,7 +17,7 @@ The launcher artwork is a custom scalable Android vector at `branding/assets/pag
 
 Run `python3 scripts/import_upstream.py` from a clean working tree; this fetches the fixed upstream commit (`6a48d60ccbbaca4dd18840b9d85f00d44b51f311`) and reconstructs the Kotlin source tree. Never point it at unreviewed upstream HEAD. The import **replaces the app directory**, so commit deliberate UI and feature changes before rerunning or reconcile them manually.
 
-The initial import runs automatically through `.github/workflows/bootstrap.yml` on the import branch. Android builds must use Java 17 and Android SDK 36 with extension 19.
+The one-time import is already committed. Routine GitHub Actions CI **never runs the import script**: re-importing would overwrite the custom pagomi. UI. Android builds must use Java 17 and Android SDK 36 with extension 19.
 
 ## Signing
 
