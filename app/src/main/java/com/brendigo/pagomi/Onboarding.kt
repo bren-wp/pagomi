@@ -170,32 +170,32 @@ private fun PageWelcome() {
     Canvas(Modifier.fillMaxSize()) {
       drawRect(
         Brush.radialGradient(
-          listOf(Color(0x66FFC9B5), Color(0x40FFF0B8), Color.Transparent),
+          listOf(Color(0x666459D8), Color(0x40CDF2DE), Color.Transparent),
           Offset(size.width * 0.5f, size.height * 0.66f), size.width * 0.72f,
         ),
       )
     }
     T("pagomi.", Type.title.copy(fontSize = 21.sp, lineHeight = 28.sp, letterSpacing = (-0.4).sp), DARK, Modifier.align(Alignment.TopCenter).padding(top = 14.dp))
 
-    Sticky(Color(0xFFFFF0B0), -2f, Modifier.offset(x = (-8).dp, y = h * 0.03f).size(112.dp, 124.dp), fold = true) {
-      Icon(I.pin, 26.dp, Color(0xFFE5483B), Modifier.align(Alignment.TopStart).offset(x = 50.dp, y = (-13).dp).graphicsLayer { rotationZ = 22f })
+    Sticky(Brand.mint, -2f, Modifier.offset(x = (-8).dp, y = h * 0.03f).size(112.dp, 124.dp), fold = true) {
+      Icon(I.pin, 26.dp, Brand.primary, Modifier.align(Alignment.TopStart).offset(x = 50.dp, y = (-13).dp).graphicsLayer { rotationZ = 22f })
       Hand("More scans.\nLess paper.", Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 40.dp))
       Canvas(Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 22.dp).size(74.dp, 8.dp)) {
         for (k in 0..1) drawLine(DARK.copy(alpha = 0.3f), Offset(0f, 2.dp.toPx() + k * 4.dp.toPx()), Offset(size.width, 2.dp.toPx() + k * 3.dp.toPx()), 1.2.dp.toPx(), StrokeCap.Round)
       }
     }
-    Sticky(Color(0xFFF6F3F0), 4f, Modifier.align(Alignment.TopEnd).offset(x = 14.dp, y = h * 0.14f).size(112.dp, 130.dp)) {
+    Sticky(Brand.paper, 4f, Modifier.align(Alignment.TopEnd).offset(x = 14.dp, y = h * 0.14f).size(112.dp, 130.dp)) {
       Icon(I.paperclip, 34.dp, Color(0xFF6F6AA8), Modifier.align(Alignment.TopStart).offset(x = 12.dp, y = (-10).dp))
       Hand("Sent that\ncontract.", Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 52.dp))
-      Icon(I.star, 16.dp, Color(0xFFF0B429), Modifier.align(Alignment.BottomStart).padding(start = 18.dp, bottom = 14.dp))
+      Icon(I.star, 16.dp, Brand.primary, Modifier.align(Alignment.BottomStart).padding(start = 18.dp, bottom = 14.dp))
     }
-    Sticky(Color(0xFFE7E1F8), -3f, Modifier.offset(x = (-14).dp, y = h * 0.68f).size(110.dp, 118.dp)) {
-      Box(Modifier.align(Alignment.TopCenter).offset(y = (-7).dp).size(64.dp, 15.dp).graphicsLayer { rotationZ = -3f }.background(Color(0xFFBBD3EE).copy(alpha = 0.8f), RoundedCornerShape(1.dp)))
+    Sticky(Brand.primarySoft, -3f, Modifier.offset(x = (-14).dp, y = h * 0.68f).size(110.dp, 118.dp)) {
+      Box(Modifier.align(Alignment.TopCenter).offset(y = (-7).dp).size(64.dp, 15.dp).graphicsLayer { rotationZ = -3f }.background(Brand.mint.copy(alpha = 0.8f), RoundedCornerShape(1.dp)))
       Hand("merged them\nall in one.", Modifier.align(Alignment.TopStart).padding(start = 22.dp, top = 22.dp))
       Icon(I.heartOutline, 18.dp, Color(0xFF6F6AA8), Modifier.align(Alignment.BottomStart).padding(start = 36.dp, bottom = 14.dp))
     }
-    Sticky(Color(0xFFFBD9D2), 3f, Modifier.align(Alignment.TopEnd).offset(x = 16.dp, y = h * 0.72f).size(112.dp, 108.dp)) {
-      Icon(I.heart, 22.dp, Color(0xFFE5483B), Modifier.align(Alignment.TopStart).padding(start = 12.dp, top = 8.dp))
+    Sticky(Brand.primarySoft, 3f, Modifier.align(Alignment.TopEnd).offset(x = 16.dp, y = h * 0.72f).size(112.dp, 108.dp)) {
+      Icon(I.heart, 22.dp, Brand.primary, Modifier.align(Alignment.TopStart).padding(start = 12.dp, top = 8.dp))
       Hand("tiny files,\nbig relief.", Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 44.dp))
     }
 
@@ -234,7 +234,7 @@ private fun Sticky(fill: Color, rot: Float, modifier: Modifier, fold: Boolean = 
   Box(modifier.graphicsLayer { rotationZ = rot }.shadow(3.dp, shape, ambientColor = Color(0x22000000), spotColor = Color(0x22000000)).clip(shape).background(fill)) {
     content()
     if (fold) Canvas(Modifier.align(Alignment.BottomEnd).size(22.dp)) {
-      drawPath(Path().apply { moveTo(size.width, 0f); lineTo(size.width, size.height); lineTo(0f, size.height); close() }, Color(0xFFF2DC8A))
+      drawPath(Path().apply { moveTo(size.width, 0f); lineTo(size.width, size.height); lineTo(0f, size.height); close() }, Color(0xFFA6D8BC))
     }
   }
 }

@@ -415,7 +415,8 @@ fun Btn(
   val (bg, fg) = when (kind) {
     BtnKind.Primary -> c.ink to c.onInk
     BtnKind.Secondary -> Color.Transparent to c.ink
-    BtnKind.Danger, BtnKind.Accent -> c.accent to Brand.cherry // dark text on Tangerine reads better than white
+    BtnKind.Danger -> Brand.danger to Brand.onDanger
+    BtnKind.Accent -> c.accent to c.onAccent
   }
   val shape = CircleShape
   val alpha by animateFloatAsState(if (enabled) 1f else 0.35f, tween(180), label = "btn")
@@ -458,7 +459,7 @@ fun Chip(label: String, active: Boolean, onClick: () -> Unit) {
   val shape = CircleShape
   val on by animateFloatAsState(if (active) 1f else 0f, tween(200), label = "chip")
   val line by androidx.compose.animation.animateColorAsState(if (active) Color.Transparent else c.lineStrong, tween(200), label = "chipLine")
-  val fg by androidx.compose.animation.animateColorAsState(if (active) Brand.cherry else c.ink, tween(200), label = "chipText")
+  val fg by androidx.compose.animation.animateColorAsState(if (active) c.onAccent else c.ink, tween(200), label = "chipText")
   Box(
     Modifier.tap(shape = shape, scaleTo = 0.93f, onClick = onClick).background(c.accent.copy(alpha = on), shape)
       .border(1.dp, line, shape).padding(horizontal = 15.dp, vertical = 7.dp),
@@ -499,7 +500,7 @@ fun <K> Segmented(
   onChange: (K) -> Unit,
 ) {
   val index = choices.indexOfFirst { it.first == value }.coerceAtLeast(0)
-  // A capsule track; the chosen side is a solid Tangerine pill, like a selected chip.
+  // A capsule track; the chosen side is a solid branded accent pill, like a selected chip.
   val accent = c.accent
   BoxWithConstraints(modifier.fillMaxWidth().background(c.sunken, CircleShape).border(0.6.dp, c.line, CircleShape).padding(4.dp)) {
     val w = maxWidth / choices.size
@@ -508,7 +509,7 @@ fun <K> Segmented(
     Row {
       choices.forEachIndexed { i, (k, label) ->
         val on = i == index
-        val fg by androidx.compose.animation.animateColorAsState(if (on) Brand.cherry else c.sub, tween(200), label = "segText")
+        val fg by androidx.compose.animation.animateColorAsState(if (on) c.onAccent else c.sub, tween(200), label = "segText")
         Row(
           Modifier.size(w, 40.dp).tap(shape = CircleShape, scaleTo = 0.95f) { onChange(k) },
           horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,

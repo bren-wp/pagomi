@@ -50,7 +50,20 @@ jobs:
       - name: Check native 16 KB memory-page alignment
         run: python3 scripts/check_native_16k.py app/build/outputs/apk/debug/app-debug.apk
       - name: Run Android lint
-        run: ./gradlew :app:lintDebug --no-daemon --stacktrace
+        run: |
+          if ! ./gradlew :app:lintDebug --no-daemon --stacktrace; then
+            find app/build -name 'lint-results-debug.txt' -exec cat {} \;
+            exit 1
+          fi
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pagomi-lint-report
+          path: |
+            app/build/reports/lint-results-debug.*
+            app/build/intermediates/lint_intermediate_text_report/debug/
+          if-no-files-found: ignore
       - name: Upload debug APK
         if: success()
         uses: actions/upload-artifact@v7

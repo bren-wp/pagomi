@@ -164,8 +164,8 @@ fun App() {
     }
   }
   CompositionLocalProvider(LocalPalette provides palette) {
-    val scheme = if (dark) darkColorScheme(primary = palette.accent, background = palette.bg, surface = palette.surface, onSurface = palette.ink, surfaceContainerLow = palette.surface)
-    else lightColorScheme(primary = palette.accent, background = palette.bg, surface = palette.surface, onSurface = palette.ink, surfaceContainerLow = palette.surface)
+    val scheme = if (dark) darkColorScheme(primary = palette.accent, onPrimary = palette.onAccent, background = palette.bg, onBackground = palette.ink, surface = palette.surface, onSurface = palette.ink, surfaceContainerLow = palette.surface, error = Brand.danger, onError = Brand.onDanger)
+    else lightColorScheme(primary = palette.accent, onPrimary = palette.onAccent, background = palette.bg, onBackground = palette.ink, surface = palette.surface, onSurface = palette.ink, surfaceContainerLow = palette.surface, error = Brand.danger, onError = Brand.onDanger)
     MaterialTheme(colorScheme = scheme) { Root() }
   }
 }
@@ -306,7 +306,7 @@ private fun NavPill(haze: HazeState) {
   val glass = c.panel
   // Black Cherry glass: enough colour to read over warm paper, see-through enough to show the blur.
   val glassAlpha = if (c.dark) 0.55f else 0.68f
-  val onActive = Brand.cherry
+  val onActive = c.onAccent
   // A light rim catching the edge of the glass, brighter at the top-left.
   val rim = androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color.White.copy(alpha = 0.38f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.16f)))
   BoxWithConstraints(

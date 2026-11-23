@@ -97,10 +97,10 @@ fun SettingsTab() {
     GroupLabel("About")
     Group {
       ListRow("Version", first = true, lead = { Lead(I.informationOutline) }, value = version)
-      ListRow("PDF engine", lead = { Lead(I.codeTags) }, value = "PdfBox")
+      ListRow("App", lead = { Lead(I.informationOutline) }, value = Brand.name)
       ListRow("Privacy Policy & Terms", lead = { Lead(I.shieldCheckOutline) }, chevron = true, onClick = { terms = true })
       ListRow(
-        "Send feedback", lead = { Lead(I.messageTextOutline) }, subtitle = "Tell us what to fix or add. Opens a short form.",
+        "Send feedback", lead = { Lead(I.messageTextOutline) }, subtitle = "Share your feedback with us.",
         onClick = { openUrl(FEEDBACK_FORM) },
       ) { Icon(I.openInNew, 18.dp, c.faint) }
     }

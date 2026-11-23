@@ -15,8 +15,8 @@ android {
     applicationId = "com.brendigo.pagomi"
     minSdk = 24
     targetSdk = 36
-    versionCode = 2
-    versionName = "0.1.1"
+    versionCode = 3
+    versionName = "0.1.2"
     // Default debug APK includes all supported ABIs; optional -PallAbis builds split APKs.
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -55,6 +55,7 @@ android {
   }
 
   compileOptions {
+    isCoreLibraryDesugaringEnabled = true
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
@@ -75,6 +76,7 @@ kotlin {
 }
 
 dependencies {
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
   // Keep the API-36-compatible AndroidX group together until API 37 is available in CI.
   // Baseline versions previously built successfully in Actions run 45255479651.
   implementation(platform("androidx.compose:compose-bom:2026.06.01"))
