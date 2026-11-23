@@ -65,7 +65,7 @@ fun Home() {
   var section by rememberSaveable { mutableStateOf(-1) } // -1: every section
 
   Screen {
-    LargeTitle("Tools", "${TOOLS.size} tools. Everything runs on this phone.")
+    LargeTitle(Brand.name, "Scan, edit and organize your documents.")
     SearchField(q, { q = it }, "Merge, split, compress…")
 
     if (!searching) {
@@ -157,7 +157,7 @@ private fun Hero(files: List<Saved>, onScan: () -> Unit) {
   )
   Column(
     Modifier.padding(top = 16.dp).fillMaxWidth().tap(shape = shape, scaleTo = 0.98f, label = "Scan a document", onClick = onScan)
-      .clip(shape).glow(c.hero, 0.9f, 1.05f).padding(22.dp), // Black Cherry with Tangerine rising from the bottom right
+      .clip(shape).glow(c.hero, 0.9f, 1.05f).padding(22.dp), // pagomi. brand gradient with violet accent
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
       T(SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date()), Type.bold.copy(fontSize = Type.bold.fontSize * 1.1f), Color.White.copy(alpha = 0.85f), Modifier.weight(1f))
@@ -180,7 +180,7 @@ private fun Hero(files: List<Saved>, onScan: () -> Unit) {
         Modifier.background(Brand.cool, CircleShape).padding(start = 14.dp, end = 10.dp, top = 9.dp, bottom = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        T("Open camera", Type.label, Brand.cherry)
+        T("Scan now", Type.label, Brand.cherry)
         Spacer(Modifier.size(4.dp))
         Icon(I.arrowRight, 16.dp, Brand.cherry)
       }
