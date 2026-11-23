@@ -93,8 +93,8 @@ dependencies {
   implementation("androidx.camera:camera-camera2:$camerax")
   implementation("androidx.camera:camera-lifecycle:$camerax")
   implementation("androidx.camera:camera-view:$camerax")
-  implementation("org.opencv:opencv:4.12.0")
-  implementation("com.google.zxing:core:3.5.3")
+  implementation("org.opencv:opencv:4.13.0")
+  implementation("com.google.zxing:core:3.5.4")
 
   // PDF engine (Apache PDFBox ported to Android) and on-device OCR with the bundled Latin model.
   implementation("com.tom-roush:pdfbox-android:2.0.27.0")
