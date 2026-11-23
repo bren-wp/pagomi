@@ -154,7 +154,7 @@ private fun ToolCard(t: Tool, modifier: Modifier, shared: Boolean, onClick: () -
       ArtTile(t.id, 30.dp, if (shared) Modifier.sharedArt(t.id) else Modifier)
       Spacer(Modifier.size(8.dp))
       Column(Modifier.weight(1f)) {
-        T(t.title, Type.bold.copy(fontSize = 12.sp, lineHeight = 16.sp), maxLines = 2)
+        T(t.title, Type.bold.copy(fontSize = 12.sp, lineHeight = 16.sp), maxLines = 3)
         T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 14.sp), c.sub, Modifier.padding(top = 2.dp), maxLines = 2)
       }
     }
