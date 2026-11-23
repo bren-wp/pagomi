@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -52,13 +53,15 @@ fun ToolsHub() {
   val tools = if (searching) TOOLS.filter { matches("${it.title} ${it.desc}", tokens) } else TOOLS
   val found = if (searching) files.filter { matches(it.name, tokens) } else emptyList()
   // Sections with something to show besides the camera (the hero card already opens it).
+  val featuredIds = listOf("merge", "split", "fillSign", "ocr", "compress", "rotate", "watermark", "password", "crop", "metadata")
+  val featured = featuredIds.mapNotNull(::toolById)
   val sections = remember { SECTIONS.indices.filter { si -> TOOLS.any { it.section == si && it.id != "scan" } } }
   var section by rememberSaveable { mutableStateOf(-1) } // -1: every section
 
   Screen {
     PagomiHeader()
     LargeTitle("Tools", "Powerful PDF tools to edit, organize, and work smarter.")
-    SearchField(q, { q = it }, "Search tools or files…")
+    SearchField(q, { q = it }, "Search tools or files…", Modifier.testTag("tools-search"))
 
     if (!searching) {
       Column(Modifier.padding(top = 12.dp).fillMaxWidth().background(Brush.linearGradient(c.hero), RoundedCornerShape(Radius.hero)).padding(13.dp)) {
@@ -97,9 +100,14 @@ fun ToolsHub() {
       }
     }
 
+    if (!searching && section == -1) {
+      GroupLabel("Popular tools", caps = false)
+      ToolGrid(featured, shared = false, onOpen = { nav.tool(it.id) })
+    }
+
     SECTIONS.forEachIndexed { si, name ->
       if (!searching && section != -1 && section != si) return@forEachIndexed
-      val items = tools.filter { it.section == si && (searching || it.id != "scan") }
+      val items = tools.filter { it.section == si && (searching || it.id != "scan") && (searching || section != -1 || it.id !in featuredIds) }
       if (items.isEmpty()) return@forEachIndexed
       Stagger(si + 3) {
         Column {
@@ -139,7 +147,7 @@ private fun ToolCard(t: Tool, modifier: Modifier, shared: Boolean, onClick: () -
   val shape = RoundedCornerShape(Radius.group)
   val pinned = t.id in Pins.ids
   Box(
-    modifier.fillMaxHeight().tap(shape = shape, scaleTo = 0.96f, label = t.title, onClick = onClick)
+    modifier.fillMaxHeight().testTag("tool-${t.id}").tap(shape = shape, scaleTo = 0.96f, label = t.title, onClick = onClick)
       .background(c.surface, shape).border(0.6.dp, c.lineStrong, shape),
   ) {
     Row(Modifier.fillMaxWidth().padding(start = 9.dp, end = 24.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -147,7 +155,7 @@ private fun ToolCard(t: Tool, modifier: Modifier, shared: Boolean, onClick: () -
       Spacer(Modifier.size(8.dp))
       Column(Modifier.weight(1f)) {
         T(t.title, Type.bold.copy(fontSize = 12.sp, lineHeight = 16.sp), maxLines = 3)
-        T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 15.sp), c.sub, Modifier.padding(top = 2.dp), maxLines = 3)
+        T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 14.sp), c.sub, Modifier.padding(top = 2.dp), maxLines = 2)
       }
     }
     // Always there, so pinning is found without a hidden long-press: faint outline off, solid Tangerine on.
@@ -202,7 +210,7 @@ fun Home() {
             .background(if (id == "ocr" && !c.dark) Brand.mint else c.accentSoft, tile).padding(5.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             ToolArt(id, 24.dp)
-            T(label, Type.num.copy(fontSize = 10.sp), c.ink, maxLines = 1)
+            T(label, Type.num.copy(fontSize = 10.sp, lineHeight = 13.sp), c.ink, maxLines = 2, align = TextAlign.Center)
           }
         }
       }
@@ -230,10 +238,10 @@ private fun DashboardFiles(files: List<Saved>) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
     files.forEach { f ->
       val shape = RoundedCornerShape(Radius.group)
-      Row(Modifier.fillMaxWidth().tap(shape = shape, label = "Open ${f.name}") { openFile(f.path, f.name) }
+      Row(Modifier.fillMaxWidth().testTag("document-${f.name}").tap(shape = shape, label = "Open ${f.name}") { openFile(f.path, f.name) }
         .background(c.surface, shape).border(1.dp, c.line, shape).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        DocGlyph(kindOf(f.name))
-        Spacer(Modifier.size(12.dp))
+        Box(Modifier.size(36.dp).background(c.accentSoft, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) { DocGlyph(kindOf(f.name)) }
+        Spacer(Modifier.size(10.dp))
         Column(Modifier.weight(1f)) {
           Marquee(f.name, Type.item, c.ink)
           T("${fmtSize(f.size)} · ${fmtDate(f.modified)}", Type.small, c.sub, maxLines = 1)

@@ -1,0 +1,16 @@
+{
+  "commit": "8c0a2760857b711227c9f05acb83d4987dab7eec",
+  "api": "36",
+  "display": "Physical size: 320x640",
+  "density": "Physical density: 160",
+  "theme": "light",
+  "fixture": "isolated debug install; no real user files",
+  "screens": [
+    "onboarding",
+    "home",
+    "files",
+    "tools",
+    "settings"
+  ],
+  "visual_parity_verified": false
+}

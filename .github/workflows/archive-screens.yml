@@ -1,0 +1,68 @@
+name: Archive verified Android screenshots
+
+on:
+  push:
+    branches: [feat/pagomi-screen-gallery]
+    paths:
+      - '.github/workflows/archive-screens.yml'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful device test workflow run
+        required: true
+        default: '45279327395'
+      version:
+        description: Version label
+        required: true
+        default: '0.1.7'
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: pagomi-archive-screens
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download verified source screenshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id || '45279327395' }}
+          VERSION: ${{ inputs.version || '0.1.7' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          gh run view "$RUN_ID" --json conclusion,workflowName --jq '.conclusion + ":" + .workflowName' | grep -Fx 'success:Android PDF and scanner device tests'
+          mkdir -p "$RUNNER_TEMP/verified-screens"
+          gh run download "$RUN_ID" -n pagomi-actual-screen-captures -D "$RUNNER_TEMP/verified-screens"
+          python3 - <<'PY'
+          import os, json, pathlib
+          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "verified-screens"
+          meta = json.loads((root / "capture-metadata.json").read_text())
+          assert all((root / (name + ".png")).read_bytes().startswith(b"\x89PNG\r\n\x1a\n") for name in ("home", "files", "tools", "settings", "onboarding"))
+          assert all(name in meta["screens"] for name in ("home", "files", "tools", "settings", "onboarding"))
+          PY
+          git config user.name "pagomi screenshot gallery"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin gallery/pagomi-android >/dev/null; then
+            git fetch origin gallery/pagomi-android
+            git switch -C gallery/pagomi-android FETCH_HEAD
+          else
+            git switch -c gallery/pagomi-android
+          fi
+          dest="brending/screenshots/$VERSION"
+          mkdir -p "$dest"
+          cp "$RUNNER_TEMP/verified-screens/"*.png "$dest/"
+          cp "$RUNNER_TEMP/verified-screens/capture-metadata.json" "$dest/"
+          git add "$dest"
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: archive real Android screenshots for $VERSION (run $RUN_ID)"
+            git push origin HEAD:refs/heads/gallery/pagomi-android
+          fi

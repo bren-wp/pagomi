@@ -36,6 +36,18 @@ From the receipt in your pocket to the document you need to sign, **pagomi.** br
 </tr>
 </table>
 
+## See pagomi. in action
+
+Real Android screens from pagomi. 0.1.7.
+
+<p align="center">
+  <img src="brending/screenshots/0.1.7/home.png" alt="Home — pagomi. Android" width="30%">
+  <img src="brending/screenshots/0.1.7/files.png" alt="My Files — pagomi. Android" width="30%">
+  <img src="brending/screenshots/0.1.7/tools.png" alt="PDF Tools — pagomi. Android" width="30%">
+  <img src="brending/screenshots/0.1.7/settings.png" alt="Settings — pagomi. Android" width="30%">
+  <img src="brending/screenshots/0.1.7/onboarding.png" alt="Welcome — pagomi. Android" width="30%">
+</p>
+
 ## Your best work starts with a page.
 
 **✨ Beautiful scans**  
