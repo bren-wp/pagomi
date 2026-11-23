@@ -6,8 +6,8 @@ plugins {
 
 android {
   namespace = "com.brendigo.pagomi"
-  compileSdk = 36
-  compileSdkExtension = 19 // Jetpack PDF compatibility requires the PDF APIs added in SDK extension 19
+  // AndroidX dependencies require API 37; keep targetSdk independent.
+  compileSdk = 37
 
   defaultConfig {
     // Standalone pagomi. app ID and private storage.
