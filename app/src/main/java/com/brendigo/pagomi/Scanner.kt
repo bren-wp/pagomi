@@ -354,13 +354,13 @@ private fun Capture(
     steady -> "Capturing… hold steady"
     lost -> "No document found. Capture manually."
     corners != null -> "Hold steady"
-    else -> "Looking for document"
+    else -> "Align document inside frame"
   }
 
   Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
     Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
       Tap(I.close, "Close", onClick = if (doc.pages.isNotEmpty()) onReview else onClose)
-      if (retake != null) T("Retake page", Type.bold.copy(fontSize = 16.sp), ScanUi.text, Modifier.weight(1f), align = TextAlign.Center) else Spacer(Modifier.weight(1f))
+      if (retake != null) T("Retake page", Type.bold.copy(fontSize = 16.sp), ScanUi.text, Modifier.weight(1f), align = TextAlign.Center) else T(Brand.name, Type.bold, ScanUi.text, Modifier.weight(1f), maxLines = 1, align = TextAlign.Center)
       if (retake == null && doc.pages.isEmpty()) Tap(I.history, "Recent scans", onClick = onRecent)
       // Flash stays in its place whatever the lens, so nothing shifts when flipping: front lenses have no flash on most
       // phones, so there it's dimmed and off.
@@ -393,9 +393,9 @@ private fun Capture(
               val oy = (size.height - fh) / 2
               val pts = (0 until 4).map { Offset(ox + cs[it * 2] * fw, oy + cs[it * 2 + 1] * fh) }
               val path = Path().apply { moveTo(pts[0].x, pts[0].y); pts.drop(1).forEach { lineTo(it.x, it.y) }; close() }
-              drawPath(path, ScanUi.accentSoft)
-              drawPath(path, ScanUi.accent, style = Stroke(2.5.dp.toPx()))
-              pts.forEach { drawCircle(Color.White, 9.dp.toPx(), it); drawCircle(ScanUi.accent, 9.dp.toPx(), it, style = Stroke(4.dp.toPx())) }
+              drawPath(path, Brand.mint.copy(alpha = 0.15f))
+              drawPath(path, Brand.mint, style = Stroke(2.5.dp.toPx()))
+              pts.forEach { drawCircle(Color.White, 9.dp.toPx(), it); drawCircle(Brand.mint, 9.dp.toPx(), it, style = Stroke(4.dp.toPx())) }
             }
           }
         } else {
@@ -467,7 +467,7 @@ private fun Capture(
       Tap(I.imageMultipleOutline, "Import from gallery", 28, onClick = importPhotos)
       val inner by animateColorAsState(if (steady) ScanUi.accent else Color.White, label = "shutter")
       Box(
-        Modifier.size(78.dp).tap(enabled = !busy && granted, shape = CircleShape, scaleTo = 0.9f, label = "Capture", onClick = shoot).border(4.dp, Color.White, CircleShape),
+        Modifier.size(78.dp).tap(enabled = !busy && granted, shape = CircleShape, scaleTo = 0.9f, label = "Capture", onClick = shoot).border(4.dp, Brand.primary, CircleShape),
         contentAlignment = Alignment.Center,
       ) { if (busy) Spinner(ScanUi.accent) else Box(Modifier.size(62.dp).background(inner, CircleShape)) }
       val last = doc.pages.takeLast(3)

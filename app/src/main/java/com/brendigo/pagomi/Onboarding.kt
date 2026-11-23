@@ -3,6 +3,8 @@ package com.brendigo.pagomi
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -129,7 +131,7 @@ private fun OnboardingBody(themeDark: Boolean, onDone: () -> Unit) {
   val label = listOf("Get started", "Continue", "That's my look")[page]
   val line = listOf("No account needed. Everything stays on this phone.", "Pin as many as you like. Change these anytime.", "A good fit can change. Switch anytime in Settings.")[page]
 
-  Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding().navigationBarsPadding()) {
+  Column(Modifier.fillMaxSize().background(Brand.paper).statusBarsPadding().navigationBarsPadding()) {
     Box(Modifier.weight(1f).fillMaxWidth()) {
       HorizontalPager(pager, Modifier.fillMaxSize()) { i ->
         when (i) {
@@ -144,10 +146,15 @@ private fun OnboardingBody(themeDark: Boolean, onDone: () -> Unit) {
         Modifier.align(Alignment.TopEnd).padding(end = 12.dp, top = 8.dp).tap(shape = CircleShape, scaleTo = 0.92f, label = "Skip the intro", onClick = onDone).padding(horizontal = 14.dp, vertical = 10.dp),
       )
     }
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
+      repeat(PAGES) { i ->
+        Box(Modifier.padding(horizontal = 5.dp).size(8.dp).background(if (i == page) Brand.primary else Brand.primarySoft, CircleShape))
+      }
+    }
     Box(
       Modifier.padding(horizontal = 24.dp).padding(top = 12.dp).fillMaxWidth().height(58.dp)
         .tap(shape = CircleShape, scaleTo = 0.97f) { if (page < last) go(page + 1) else finish() }
-        .background(DARK, CircleShape),
+        .background(Brand.primary, CircleShape),
       contentAlignment = Alignment.Center,
     ) { T(label, Type.button, Color.White, maxLines = 1) }
     T(line, SMALL, SUB, Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 14.dp), align = TextAlign.Center)
@@ -164,67 +171,28 @@ private fun Title(title: String, sub: String? = null) {
 
 @Composable
 private fun PageWelcome() {
-  BoxWithConstraints(Modifier.fillMaxSize()) {
-    val w = maxWidth
-    val h = maxHeight
-    Canvas(Modifier.fillMaxSize()) {
-      drawRect(
-        Brush.radialGradient(
-          listOf(Color(0x666459D8), Color(0x40CDF2DE), Color.Transparent),
-          Offset(size.width * 0.5f, size.height * 0.66f), size.width * 0.72f,
-        ),
-      )
-    }
-    T("pagomi.", Type.title.copy(fontSize = 21.sp, lineHeight = 28.sp, letterSpacing = (-0.4).sp), DARK, Modifier.align(Alignment.TopCenter).padding(top = 14.dp))
-
-    Sticky(Brand.mint, -2f, Modifier.offset(x = (-8).dp, y = h * 0.03f).size(112.dp, 124.dp), fold = true) {
-      Icon(I.pin, 26.dp, Brand.primary, Modifier.align(Alignment.TopStart).offset(x = 50.dp, y = (-13).dp).graphicsLayer { rotationZ = 22f })
-      Hand("More scans.\nLess paper.", Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 40.dp))
-      Canvas(Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 22.dp).size(74.dp, 8.dp)) {
-        for (k in 0..1) drawLine(DARK.copy(alpha = 0.3f), Offset(0f, 2.dp.toPx() + k * 4.dp.toPx()), Offset(size.width, 2.dp.toPx() + k * 3.dp.toPx()), 1.2.dp.toPx(), StrokeCap.Round)
+  Column(Modifier.fillMaxSize().padding(horizontal = 24.dp),
+    horizontalAlignment = Alignment.CenterHorizontally) {
+    Spacer(Modifier.height(32.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Image(painterResource(R.drawable.pagomi_launcher), null, Modifier.size(52.dp))
+      Column(Modifier.padding(start = 12.dp)) {
+        T(Brand.name, Type.largeTitle, Brand.ink)
+        T("PDF Scanner & Editor", Type.small, Brand.ink.copy(alpha = 0.72f))
       }
     }
-    Sticky(Brand.paper, 4f, Modifier.align(Alignment.TopEnd).offset(x = 14.dp, y = h * 0.14f).size(112.dp, 130.dp)) {
-      Icon(I.paperclip, 34.dp, Color(0xFF6F6AA8), Modifier.align(Alignment.TopStart).offset(x = 12.dp, y = (-10).dp))
-      Hand("Sent that\ncontract.", Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 52.dp))
-      Icon(I.star, 16.dp, Brand.primary, Modifier.align(Alignment.BottomStart).padding(start = 18.dp, bottom = 14.dp))
+    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+      BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        val artSize = minOf(maxWidth * 0.76f, 244.dp)
+        Box(Modifier.size(artSize).background(Brand.primarySoft, RoundedCornerShape(40.dp)), contentAlignment = Alignment.Center) {
+          Box(Modifier.align(Alignment.BottomStart).size(artSize * 0.42f).background(Brand.mint, CircleShape))
+          Image(painterResource(R.drawable.pagomi_launcher), null, Modifier.size(artSize * 0.72f))
+        }
+      }
     }
-    Sticky(Brand.primarySoft, -3f, Modifier.offset(x = (-14).dp, y = h * 0.68f).size(110.dp, 118.dp)) {
-      Box(Modifier.align(Alignment.TopCenter).offset(y = (-7).dp).size(64.dp, 15.dp).graphicsLayer { rotationZ = -3f }.background(Brand.mint.copy(alpha = 0.8f), RoundedCornerShape(1.dp)))
-      Hand("merged them\nall in one.", Modifier.align(Alignment.TopStart).padding(start = 22.dp, top = 22.dp))
-      Icon(I.heartOutline, 18.dp, Color(0xFF6F6AA8), Modifier.align(Alignment.BottomStart).padding(start = 36.dp, bottom = 14.dp))
-    }
-    Sticky(Brand.primarySoft, 3f, Modifier.align(Alignment.TopEnd).offset(x = 16.dp, y = h * 0.72f).size(112.dp, 108.dp)) {
-      Icon(I.heart, 22.dp, Brand.primary, Modifier.align(Alignment.TopStart).padding(start = 12.dp, top = 8.dp))
-      Hand("tiny files,\nbig relief.", Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 44.dp))
-    }
-
-    T(
-      "Every PDF tool.\nAll on your phone.\nAll free.",
-      TextStyle(fontFamily = Poppins, fontWeight = FontWeight.Medium, fontSize = 27.sp, lineHeight = 36.sp, letterSpacing = (-0.6).sp),
-      DARK, Modifier.align(Alignment.TopCenter).offset(y = h * 0.43f), align = TextAlign.Center,
-    )
-    // A looped scribble that ends in an arrow pointing down at the button.
-    Canvas(Modifier.align(Alignment.TopCenter).offset(x = 6.dp, y = h * 0.70f).size(w * 0.34f, h * 0.27f)) {
-      val sx = size.width / 100f
-      val sy = size.height / 150f
-      fun p(x: Float, y: Float) = Offset(x * sx, y * sy)
-      val st = DrawStroke(1.8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-      val ink = DARK.copy(alpha = 0.78f)
-      drawPath(
-        Path().apply {
-          moveTo(p(100f, 6f).x, p(100f, 6f).y)
-          cubicTo(p(80f, 14f).x, p(80f, 14f).y, p(55f, 18f).x, p(55f, 18f).y, p(34f, 12f).x, p(34f, 12f).y)
-          cubicTo(p(14f, 7f).x, p(14f, 7f).y, p(14f, -2f).x, p(14f, -2f).y, p(26f, 0f).x, p(26f, 0f).y)
-          cubicTo(p(42f, 3f).x, p(42f, 3f).y, p(34f, 28f).x, p(34f, 28f).y, p(36f, 60f).x, p(36f, 60f).y)
-          cubicTo(p(37f, 90f).x, p(37f, 90f).y, p(38f, 112f).x, p(38f, 112f).y, p(40f, 144f).x, p(40f, 144f).y)
-        },
-        ink, style = st,
-      )
-      val tip = p(40f, 146f)
-      drawLine(ink, tip, p(26f, 128f), st.width, StrokeCap.Round)
-      drawLine(ink, tip, p(54f, 126f), st.width, StrokeCap.Round)
-    }
+    T("Scan smarter", Type.largeTitle, Brand.ink, Modifier.fillMaxWidth(), align = TextAlign.Center)
+    T("Turn paper and photos into clear, high-quality PDFs.", Type.body, Brand.ink.copy(alpha = 0.72f),
+      Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 18.dp), align = TextAlign.Center)
   }
 }
 

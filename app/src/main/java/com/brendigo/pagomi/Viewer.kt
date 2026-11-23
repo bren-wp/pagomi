@@ -166,7 +166,10 @@ fun PdfViewerScreen(path: String, name: String) {
           IconBtn(I.chevronDown, label = "Next match", enabled = matches.isNotEmpty()) { at = (at + 1) % matches.size }
         } else {
           IconBtn(I.arrowLeft, label = "Back") { nav.back() }
-          Marquee(stem(name), Type.bold.copy(fontSize = Type.bold.fontSize * 1.1f), c.ink, Modifier.weight(1f).padding(horizontal = 4.dp))
+          Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {
+            Marquee(name, Type.bold, c.ink)
+            if (pages > 0) T("Page $page of $pages", Type.num, c.sub)
+          }
           IconBtn(I.magnify, label = "Search", enabled = doc != null) { searching = true }
           IconBtn(I.shareVariantOutline, label = "Share") { share(path, name) }
           IconBtn(I.openInNew, label = "Open in another app") { openExternally(path, name) }
@@ -199,7 +202,7 @@ fun PdfViewerScreen(path: String, name: String) {
           Box(
             Modifier.size(36.dp).tap(shape = CircleShape, scaleTo = 0.9f, label = "Page thumbnails") { thumbs = true }.background(c.accent, CircleShape),
             contentAlignment = Alignment.Center,
-          ) { Icon(I.viewGridOutline, 18.dp, Brand.cherry) }
+          ) { Icon(I.viewGridOutline, 18.dp, c.onAccent) }
         }
       }
     }
