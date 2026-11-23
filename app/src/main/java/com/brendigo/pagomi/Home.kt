@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -46,7 +47,6 @@ import androidx.compose.ui.unit.em
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
 
 // Tokenized search: every word in the query must appear somewhere in the target. "split text" finds "Split PDF by Text".
 private fun matches(target: String, tokens: List<String>) = target.lowercase().let { t -> tokens.all { it in t } }
@@ -160,7 +160,7 @@ private fun Hero(files: List<Saved>, onScan: () -> Unit) {
       .clip(shape).glow(c.hero, 0.9f, 1.05f).padding(22.dp), // pagomi. brand gradient with violet accent
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-      T(SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date()), Type.bold.copy(fontSize = Type.bold.fontSize * 1.1f), Color.White.copy(alpha = 0.85f), Modifier.weight(1f))
+      T(SimpleDateFormat("EEE, d MMM", LocalLocale.current.platformLocale).format(Date()), Type.bold.copy(fontSize = Type.bold.fontSize * 1.1f), Color.White.copy(alpha = 0.85f), Modifier.weight(1f))
       if (Backup.state.enabled) {
         Row(Modifier.background(Color.White.copy(alpha = 0.16f), CircleShape).padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
           Icon(I.googleDrive, 14.dp, Color.White)
