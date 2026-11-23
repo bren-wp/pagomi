@@ -44,7 +44,7 @@ jobs:
           SDKMGR=$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -type f -name sdkmanager | head -n 1)
           test -n "$SDKMGR"
           yes | "$SDKMGR" --licenses >/dev/null || true
-          "$SDKMGR" "platforms;android-37" "build-tools;36.0.0"
+          "$SDKMGR" "platforms;android-36" "build-tools;36.0.0"
       - name: Compile Android and execute unit tests
         run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
       - name: Check native 16 KB memory-page alignment

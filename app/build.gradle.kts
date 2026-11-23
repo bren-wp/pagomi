@@ -6,8 +6,9 @@ plugins {
 
 android {
   namespace = "com.brendigo.pagomi"
-  // AndroidX dependencies require API 37; keep targetSdk independent.
-  compileSdk = 37
+  // API 36 + extension 19 is available in CI and required by the PDF viewer.
+  compileSdk = 36
+  compileSdkExtension = 19
 
   defaultConfig {
     // Standalone pagomi. app ID and private storage.
@@ -74,21 +75,23 @@ kotlin {
 }
 
 dependencies {
-  implementation(platform("androidx.compose:compose-bom:2026.09.00"))
+  // Keep the API-36-compatible AndroidX group together until API 37 is available in CI.
+  // Baseline versions previously built successfully in Actions run 45255479651.
+  implementation(platform("androidx.compose:compose-bom:2026.06.01"))
   implementation("androidx.compose.ui:ui")
   implementation("androidx.compose.foundation:foundation")
   implementation("androidx.compose.animation:animation")
   implementation("androidx.compose.material3:material3")
-  implementation("androidx.activity:activity-compose:1.13.0")
-  implementation("androidx.navigation:navigation-compose:2.10.2")
-  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+  implementation("androidx.activity:activity-compose:1.11.0")
+  implementation("androidx.navigation:navigation-compose:2.9.4")
+  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.2")
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0")
-  implementation("dev.chrisbanes.haze:haze:1.7.2") // compatible 1.x API: a separate Haze 2 migration needs UI regression testing
+  implementation("dev.chrisbanes.haze:haze:1.7.0") // compatible 1.x API: a separate Haze 2 migration needs UI regression testing
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
 
   // Scanner: camera, page detection and filters (OpenCV + the bundled DocAligner model), QR codes.
-  val camerax = "1.7.0"
+  val camerax = "1.6.0"
   implementation("androidx.camera:camera-core:$camerax")
   implementation("androidx.camera:camera-camera2:$camerax")
   implementation("androidx.camera:camera-lifecycle:$camerax")

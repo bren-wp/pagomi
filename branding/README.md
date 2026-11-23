@@ -17,7 +17,7 @@ The launcher artwork is a custom scalable Android vector at `branding/assets/pag
 
 Run `python3 scripts/import_upstream.py` from a clean working tree; this fetches the fixed upstream commit (`6a48d60ccbbaca4dd18840b9d85f00d44b51f311`) and reconstructs the Kotlin source tree. Never point it at unreviewed upstream HEAD. The import **replaces the app directory**, so commit deliberate UI and feature changes before rerunning or reconcile them manually.
 
-The one-time import is already committed. Routine GitHub Actions CI **never runs the import script**: re-importing would overwrite the custom pagomi. UI. Android builds must use Java 17 and Android SDK 37 (targetSdk 36, minSdk 24).
+The one-time import is already committed. Routine GitHub Actions CI **never runs the import script**: re-importing would overwrite the custom pagomi. UI. Android builds must use Java 17 and Android SDK 36 with extension 19 (targetSdk 36, minSdk 24).
 
 ## Signing
 
