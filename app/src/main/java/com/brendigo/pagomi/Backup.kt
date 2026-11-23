@@ -309,7 +309,7 @@ object Backup {
       withToken(email) { token -> reconcile(token, email, ::mine) }
       mine { it.copy(lastSync = System.currentTimeMillis(), error = null) }
     } catch (e: Exception) {
-      android.util.Log.w("PdfTools", "Drive sync failed", e) // the words shown are simplified; logcat keeps the cause
+      android.util.Log.w("Pagomi", "Drive sync failed", e) // the words shown are simplified; logcat keeps the cause
       mine { it.copy(error = describe(e)) }
     }
     withContext(Dispatchers.Main) { Store.refreshOnly() }
