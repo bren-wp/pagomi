@@ -68,12 +68,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke as DrawStroke
 // with a small line under it, and Skip on top. Welcome (sticky notes), pin the tools you want at the top of Home, and a
 // look to match (light, auto or dark). Always light, whatever the app's theme. Nothing animates except the swipe.
 
-private val DARK = Color(0xFF1C1C1B)
+private val DARK = Brand.ink
 private val SUB = Color(0xFF9B9B9B)
-private val ROW = Color(0xFFF4F4F5)
-private val PURPLE = Color(0xFF7A6CF2)
+private val ROW = Color(0xFFF1F3F0)
+private val PURPLE = Brand.primary
 private val TEAL = Color(0xFF1FB58C)
-private val SALMON = Color(0xFFF2735B)
+private val SALMON = Color(0xFFB8AEFF)
 private val HAND = FontFamily(Font(R.font.caveat)) // Caveat, SIL Open Font License
 private const val PAGES = 3
 
@@ -84,7 +84,7 @@ private class Look(val pref: ThemePref, val tint: Color, val chip: String, val b
 
 private val LOOKS = listOf(
   Look(ThemePref.Light, Color(0xFFECE8FE), "LIGHT", "Bright pages.\nClean white paper.\nEasy daytime\nreading.", "Daylight", "Always light", 1),
-  Look(ThemePref.System, Color(0xFFFDDDD2), "AUTO", "Follows your phone.\nLight by day,\ndark by night.\nNothing to set.", "Auto", "Matches your phone", 0),
+  Look(ThemePref.System, Color(0xFFE8E5FF), "AUTO", "Follows your phone.\nLight by day,\ndark by night.\nNothing to set.", "Auto", "Matches your phone", 0),
   Look(ThemePref.Dark, Color(0xFFDDE9E1), "DARK", "Lights down low.\nEasy on the eyes\nfor late-night\nreading.", "Midnight", "Always dark", 2),
 )
 
@@ -370,7 +370,7 @@ private fun Character(kind: Int, modifier: Modifier) {
           moveTo(cx + big * 3.2f, cy - big * 1.55f); lineTo(cx + big * 2.1f, cy - big * 1.0f); lineTo(cx + big * 2.55f, cy - big * 0.88f)
           lineTo(cx + big * 2.45f, cy - big * 0.45f); lineTo(cx + big * 2.8f, cy - big * 0.8f); close()
         }
-        drawPath(plane, Color(0xFFFCC9BA))
+        drawPath(plane, Color(0xFFCDF2DE))
         drawPath(plane, DARK, style = DrawStroke(1.5f * d, join = StrokeJoin.Round))
         drawPath(Path().apply { moveTo(cx + big * 1.5f, cy - big * 1.7f); quadraticBezierTo(cx + big * 2.5f, cy - big * 2.05f, cx + big * 3.3f, cy - big * 1.85f) }, DARK.copy(alpha = 0.5f), style = DrawStroke(1.3f * d, cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3 * d, 4 * d))))
       }
