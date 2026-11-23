@@ -590,7 +590,7 @@ fun SearchField(value: String, onChange: (String) -> Unit, placeholder: String, 
     keyboardOptions = KeyboardOptions(autoCorrectEnabled = false, imeAction = ImeAction.Search),
     modifier = modifier.fillMaxWidth(),
     decorationBox = { inner ->
-      Row(Modifier.heightIn(min = 40.dp).background(c.sunken, shape).border(1.dp, c.line, shape).padding(start = 12.dp, end = 4.dp, top = 5.dp, bottom = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+      Row(Modifier.heightIn(min = 44.dp).background(c.sunken, shape).border(1.dp, c.line, shape).padding(start = 12.dp, end = 4.dp, top = 5.dp, bottom = 5.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(I.magnify, 20.dp, c.sub)
         Spacer(Modifier.size(8.dp))
         Box(Modifier.weight(1f)) {

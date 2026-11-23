@@ -60,6 +60,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import dev.chrisbanes.haze.HazeState
@@ -188,7 +190,7 @@ private fun Root() {
     importIncoming(incoming)?.let { nav.viewer(it.path, it.name) }
     Incoming.uri = null
   }
-  SharedTransitionLayout(Modifier.fillMaxSize().background(c.bg)) {
+  SharedTransitionLayout(Modifier.fillMaxSize().background(c.bg).semantics { testTagsAsResourceId = true }) {
     val shared = this
     Box(Modifier.fillMaxSize()) {
       CompositionLocalProvider(LocalNav provides nav, LocalShared provides shared) {
