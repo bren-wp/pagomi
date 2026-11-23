@@ -79,6 +79,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -281,15 +285,27 @@ fun PagedColumn(
           .border(1.dp, c.line, RoundedCornerShape(Radius.control)).padding(horizontal = 4.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        IconBtn(I.chevronLeft, 24.dp, if (scroll.value > 0) c.accentInk else c.faint, "Previous section", enabled = scroll.value > 0) {
-          scope.launch { scroll.scrollTo((scroll.value - step).coerceAtLeast(0)) }
+        SectionButton(I.chevronLeft, "Previous section", "section-previous", scroll.value > 0) {
+          scope.launch { scroll.scrollTo(if (scroll.value == 0) 0 else ((scroll.value - 1) / step) * step) }
         }
-        T("$page / $count", Type.label, c.sub, Modifier.weight(1f), align = TextAlign.Center)
-        IconBtn(I.chevronRight, 24.dp, if (scroll.value < limit) c.accentInk else c.faint, "Next section", enabled = scroll.value < limit) {
-          scope.launch { scroll.scrollTo((scroll.value.toLong() + step).coerceAtMost(limit.toLong()).toInt()) }
+        T("$page / $count", Type.label, c.sub, Modifier.weight(1f).testTag("section-indicator"), align = TextAlign.Center)
+        SectionButton(I.chevronRight, "Next section", "section-next", scroll.value < limit) {
+          scope.launch { scroll.scrollTo(((scroll.value.toLong() / step + 1) * step).coerceAtMost(limit.toLong()).toInt()) }
         }
       }
     }
+  }
+}
+
+/** The clickable parent owns the label and enabled state; the decorative glyph has no separate accessibility target. */
+@Composable
+private fun SectionButton(glyph: Int, label: String, tag: String, enabled: Boolean, onClick: () -> Unit) {
+  Box(
+    Modifier.size(44.dp).testTag(tag).semantics { contentDescription = label }
+      .tap(enabled = enabled, pressed = c.sunken, shape = CircleShape, label = label, onClick = onClick),
+    contentAlignment = Alignment.Center,
+  ) {
+    Icon(glyph, 24.dp, if (enabled) c.accentInk else c.faint, modifier = Modifier.clearAndSetSemantics {})
   }
 }
 

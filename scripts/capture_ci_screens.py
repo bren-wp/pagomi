@@ -89,47 +89,69 @@ def tap_bounds(choices):
     x1, y1, x2, y2 = max(choices, key=lambda b: b[3])
     adb("shell", "input", "tap", str((x1+x2)//2), str((y1+y2)//2))
 
+def section_node(root, tag):
+    return next((n for n in root.iter("node")
+                 if n.get("resource-id") == tag and n.get("clickable") == "true"), None)
+
+def section_enabled(root, tag):
+    node = section_node(root, tag)
+    return node is not None and node.get("enabled") == "true"
+
+def section_status(root):
+    node = next((n for n in root.iter("node") if n.get("resource-id") == "section-indicator"), None)
+    return node.get("text", "") if node is not None else ""
+
+def turn_section(root, tag):
+    node = section_node(root, tag)
+    if node is None or node.get("enabled") != "true":
+        raise RuntimeError("Section control unavailable: " + tag)
+    before = section_status(root)
+    tap_bounds([bounds(node)])
+    return wait_for(lambda r: section_status(r) != before, "section change after " + tag)
+
 def navigate(label):
-    for _ in range(25):
-        root = wait_for(lambda r: bool(visible_choices(r, label)) or bool(visible_choices(r, "Next section", True)), label)
+    for _ in range(100):
+        root = wait_for(lambda r: bool(visible_choices(r, label)) or section_enabled(r, "section-next"), label)
         choices = visible_choices(root, label)
         if choices:
             tap_bounds(choices)
             return
-        tap_bounds(visible_choices(root, "Next section", True))
-        time.sleep(0.5)
+        turn_section(root, "section-next")
     raise RuntimeError("Not reachable by section navigation: " + label)
 
 def reset_section():
-    for _ in range(25):
-        root = hierarchy()
-        choices = visible_choices(root, "Previous section", True)
-        if not choices:
+    root = hierarchy()
+    for _ in range(100):
+        if not section_enabled(root, "section-previous"):
+            status = section_status(root)
+            if status and not status.startswith("1 / "):
+                raise RuntimeError("Previous unavailable before first section: " + status)
             return
-        tap_bounds(choices)
-        time.sleep(0.5)
-    raise RuntimeError("Could not return to the first section")
+        root = turn_section(root, "section-previous")
+    raise RuntimeError("Could not return to the first section: " + section_status(root))
 
 def verify_fixed_tools():
     reset_section()
     root = wait_for(lambda r: bool(visible_choices(r, "tools-search")), "tools search")
     initial = visible_choices(root, "tools-search")[0]
-    # Swipe through the catalog, not the search field, then check the screen anchor.
+    before = section_status(root)
+    if not section_enabled(root, "section-next"):
+        raise RuntimeError("Expected more than one section in the full tool catalog")
     size = re.findall(r"(\d+)x(\d+)", adb("shell", "wm", "size"))
     w, h = map(int, size[-1])
     adb("shell", "input", "swipe", str(w//2), str(h*7//10), str(w//2), str(h*3//10), "400")
     time.sleep(0.5)
-    current = visible_choices(hierarchy(), "tools-search")
-    if not current or current[0] != initial:
-        raise RuntimeError("Tools screen moves on vertical swipe")
     root = hierarchy()
-    next_choices = visible_choices(root, "Next section", True)
-    if next_choices:
-        tap_bounds(next_choices)
-        time.sleep(0.5)
-        reset_section()
-        if not visible_choices(hierarchy(), "tools-search"):
-            raise RuntimeError("Page controls did not restore Tools")
+    current = visible_choices(root, "tools-search")
+    if not current or current[0] != initial or section_status(root) != before:
+        raise RuntimeError("Tools screen moves on vertical swipe")
+    root = turn_section(root, "section-next")
+    if not section_enabled(root, "section-previous"):
+        raise RuntimeError("Next section did not enable previous section")
+    reset_section()
+    root = wait_for(lambda r: bool(visible_choices(r, "tools-search")), "restored tools search")
+    if section_status(root) != before or visible_choices(root, "tools-search")[0] != initial:
+        raise RuntimeError("Page controls did not restore Tools")
 
 def start():
     adb("shell", "am", "start", "-W", "-n", ACTIVITY)
@@ -269,4 +291,13 @@ def main():
     }, indent=2) + "\n")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        OUT.mkdir(parents=True, exist_ok=True)
+        try:
+            (OUT / "failure-hierarchy.xml").write_bytes(ET.tostring(hierarchy(), encoding="utf-8"))
+            (OUT / "failure-screen.png").write_bytes(adb("exec-out", "screencap", "-p", text=False))
+        except Exception as diagnostic_error:
+            print("Could not capture failure diagnostics:", diagnostic_error)
+        raise
