@@ -83,7 +83,7 @@ object Viewer {
 }
 
 private const val MATCH = 0x55FFC94D // every search hit: a soft marker yellow
-private const val CURRENT = 0x5CFF7A4F // the hit you're on: a light Tangerine (the view darkens it over text)
+private const val CURRENT = 0x5C6459D8 // the hit you're on: a light pagomi violet (the view darkens it over text)
 
 private class Match(val first: PdfRect, val all: List<PdfRect>)
 
