@@ -1,6 +1,5 @@
 plugins {
   id("com.android.application")
-  id("org.jetbrains.kotlin.android")
   id("org.jetbrains.kotlin.plugin.compose")
   id("org.jetbrains.kotlin.plugin.serialization")
 }
@@ -8,15 +7,15 @@ plugins {
 android {
   namespace = "com.brendigo.pagomi"
   compileSdk = 36
-  compileSdkExtension = 19 // Jetpack PDF 1.0.0-alpha18 builds against the PDF APIs added in SDK extension 19
+  compileSdkExtension = 19 // Jetpack PDF compatibility requires the PDF APIs added in SDK extension 19
 
   defaultConfig {
-    // Same id and storage layout as the Expo app, so this build installs over it and keeps its files, scans and Drive link.
+    // Standalone pagomi. app ID and private storage.
     applicationId = "com.brendigo.pagomi"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "0.1.0"
+    versionCode = 2
+    versionName = "0.1.1"
     // OpenCV ships a native lib per ABI; one keeps the APK small. `-PallAbis` (the release workflow) builds an APK per
     // ABI plus a universal one instead.
     if (!project.hasProperty("allAbis")) ndk { abiFilters += "arm64-v8a" }
@@ -77,21 +76,21 @@ kotlin {
 }
 
 dependencies {
-  implementation(platform("androidx.compose:compose-bom:2026.06.01"))
+  implementation(platform("androidx.compose:compose-bom:2026.09.00"))
   implementation("androidx.compose.ui:ui")
   implementation("androidx.compose.foundation:foundation")
   implementation("androidx.compose.animation:animation")
   implementation("androidx.compose.material3:material3")
-  implementation("androidx.activity:activity-compose:1.11.0")
-  implementation("androidx.navigation:navigation-compose:2.9.4")
-  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-  implementation("dev.chrisbanes.haze:haze:1.7.0") // frosted-glass blur behind the tab bar (Compose has no backdrop blur); 1.7.3 needs compileSdk 37
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+  implementation("androidx.activity:activity-compose:1.13.0")
+  implementation("androidx.navigation:navigation-compose:2.10.2")
+  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0")
+  implementation("dev.chrisbanes.haze:haze:1.7.2") // compatible 1.x API: a separate Haze 2 migration needs UI regression testing
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
 
   // Scanner: camera, page detection and filters (OpenCV + the bundled DocAligner model), QR codes.
-  val camerax = "1.6.0"
+  val camerax = "1.7.0"
   implementation("androidx.camera:camera-core:$camerax")
   implementation("androidx.camera:camera-camera2:$camerax")
   implementation("androidx.camera:camera-lifecycle:$camerax")
@@ -105,7 +104,7 @@ dependencies {
 
   // The in-app viewer: Jetpack's PDF viewer (the Drive viewer's engine) with text selection, search, zoom and links.
   // It needs Android 12 with the PDF system update; older phones keep opening PDFs in their own viewer.
-  implementation("androidx.pdf:pdf-compose:1.0.0-alpha18")
+  implementation("androidx.pdf:pdf-compose:1.0.0-alpha18") // pinned until PDF viewer beta API migration is tested
   implementation("androidx.pdf:pdf-document-service:1.0.0-alpha18")
 
   // Google Drive sync: Identity AuthorizationClient for a drive.file token.
