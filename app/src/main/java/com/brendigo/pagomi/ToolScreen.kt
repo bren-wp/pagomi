@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -223,7 +224,7 @@ fun ToolScreen(id: String, resume: Boolean, sourcePath: String = "", sourceName:
       Row(verticalAlignment = Alignment.CenterVertically) {
         CompositionLocalProvider(LocalPalette provides LightPalette) { ArtTile(tool.id, 64.dp, Modifier.sharedArt(tool.id), bg = Brand.cool) }
         Spacer(Modifier.size(14.dp))
-        T(tool.title, Type.title.copy(fontSize = 23.sp, lineHeight = 30.sp), c.ink, Modifier.weight(1f))
+        T(tool.title, Type.title.copy(fontSize = 23.sp, lineHeight = 30.sp), c.ink, Modifier.weight(1f).testTag("tool-screen-$id"))
         val pinned = tool.id in Pins.ids
         IconBtn(if (pinned) I.pin else I.pinOutline, 22.dp, if (pinned) c.accent else c.sub, if (pinned) "Unpin from Home" else "Pin to top of Home") { Pins.toggle(tool.id) }
       }
