@@ -47,6 +47,13 @@ jobs:
           "$SDKMGR" "platforms;android-36" "build-tools;36.0.0"
       - name: Compile Android and execute unit tests
         run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagomi-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
       - name: Build unsigned release review AAB
         run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
       - name: Upload unsigned review AAB
@@ -55,11 +62,4 @@ jobs:
         with:
           name: pagomi-unsigned-review-aab
           path: app/build/outputs/bundle/release/*.aab
-          if-no-files-found: error
-      - name: Upload debug APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pagomi-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
