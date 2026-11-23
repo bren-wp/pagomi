@@ -116,6 +116,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -418,16 +419,16 @@ fun Btn(
     BtnKind.Danger -> Brand.danger to Brand.onDanger
     BtnKind.Accent -> c.accent to c.onAccent
   }
-  val shape = CircleShape
+  val shape = RoundedCornerShape(Radius.control)
   val alpha by animateFloatAsState(if (enabled) 1f else 0.35f, tween(180), label = "btn")
   Row(
     modifier
-      .height(height)
+      .heightIn(min = height)
       .graphicsLayer { this.alpha = alpha }
       .tap(enabled = enabled && !busy, shape = shape, scaleTo = 0.96f, onClick = onClick)
       .background(bg, shape)
       .then(if (kind == BtnKind.Secondary) Modifier.border(1.dp, c.lineStrong, shape) else Modifier)
-      .padding(horizontal = 18.dp),
+      .padding(horizontal = 10.dp, vertical = 8.dp),
     horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
   ) {
     if (busy) {
@@ -437,7 +438,7 @@ fun Btn(
       Icon(icon, 19.dp, fg)
       Spacer(Modifier.size(8.dp))
     }
-    T(label, Type.button, fg, maxLines = 1)
+    T(label, Type.button, fg, maxLines = 2, align = TextAlign.Center)
   }
 }
 
@@ -645,24 +646,24 @@ fun AppDialog(onDismiss: () -> Unit, title: String, subtitle: String? = null, co
     val shown = remember { MutableTransitionState(false) }.apply { targetState = true }
     // The window fills the screen, so a tap on the dimmed area around the card is ours to turn into a dismiss.
     Box(
-      Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onDismiss() } }.imePadding().padding(20.dp),
+      Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onDismiss() } }.imePadding().statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
       contentAlignment = Alignment.Center,
     ) {
       AnimatedVisibility(
         shown,
         enter = fadeIn(tween(160)) + scaleIn(spring(0.7f, Spring.StiffnessMedium), initialScale = 0.9f),
       ) {
-        val shape = RoundedCornerShape(Radius.card)
+        val shape = RoundedCornerShape(26.dp)
         Column(
           Modifier.widthIn(max = 420.dp).fillMaxWidth().pointerInput(Unit) { detectTapGestures { } } // taps on the card stay on it
-            .background(c.surface, shape).border(1.dp, c.lineStrong, shape).padding(20.dp),
+            .shadow(12.dp, shape).background(c.surface, shape).border(1.dp, c.line, shape).verticalScroll(rememberScrollState()).padding(20.dp),
         ) {
           Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f).padding(top = 2.dp)) {
-              T(title, Type.title.copy(fontSize = Type.title.fontSize * 0.8f, lineHeight = Type.title.lineHeight * 0.8f))
+              T(title, Type.title.copy(fontSize = 21.sp, lineHeight = 28.sp))
               if (!subtitle.isNullOrEmpty()) T(subtitle, Type.small, c.sub, Modifier.padding(top = 4.dp))
             }
-            IconBtn(I.close, 20.dp, c.faint, "Close", onClick = onDismiss)
+            IconBtn(I.close, 22.dp, c.sub, "Close", onClick = onDismiss)
           }
           content()
         }

@@ -103,7 +103,7 @@ private class Frame(val w: Dp, val h: Dp, val wPx: Float, val hPx: Float, val im
 @Composable
 private fun PageStage(pages: Pages, clip: Boolean = true, overlay: @Composable BoxScope.(Frame) -> Unit) {
   BoxWithConstraints(
-    Modifier.fillMaxWidth().height(MAX_H + 24.dp).background(c.sunken, RoundedCornerShape(Radius.group)).padding(12.dp),
+    Modifier.fillMaxWidth().height(MAX_H + 24.dp).background(c.accentSoft, RoundedCornerShape(Radius.card)).border(1.dp, c.line, RoundedCornerShape(Radius.card)).padding(12.dp),
     contentAlignment = Alignment.Center,
   ) {
     val t = pages.img?.second
@@ -129,8 +129,8 @@ private fun PageStage(pages: Pages, clip: Boolean = true, overlay: @Composable B
 @Composable
 private fun PageBar(pages: Pages, trailing: @Composable RowScope.() -> Unit = {}) {
   var goTo by remember { mutableStateOf(false) }
-  Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-    IconBtn(I.chevronLeft, color = if (pages.index > 0) c.ink else c.faint, label = "Previous page") { pages.go(pages.index - 1) }
+  Row(Modifier.fillMaxWidth().padding(top = 8.dp).background(c.surface, RoundedCornerShape(Radius.control)).border(1.dp, c.line, RoundedCornerShape(Radius.control)).padding(horizontal = 4.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+    IconBtn(I.chevronLeft, color = if (pages.index > 0) c.accentInk else c.faint, label = "Previous page", enabled = pages.index > 0) { pages.go(pages.index - 1) }
     Row(
       Modifier.tap(pressed = c.sunken, shape = RoundedCornerShape(8.dp), enabled = pages.count > 1) { goTo = true }.padding(start = 6.dp, end = 2.dp, top = 4.dp, bottom = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
@@ -138,7 +138,7 @@ private fun PageBar(pages: Pages, trailing: @Composable RowScope.() -> Unit = {}
       T("Page ${pages.index + 1}${if (pages.count > 0) " of ${pages.count}" else ""}", Type.med.copy(fontSize = 14.sp))
       if (pages.count > 1) Icon(I.menuDown, 18.dp, c.sub)
     }
-    IconBtn(I.chevronRight, color = if (pages.index < pages.count - 1) c.ink else c.faint, label = "Next page") { pages.go(pages.index + 1) }
+    IconBtn(I.chevronRight, color = if (pages.index < pages.count - 1) c.accentInk else c.faint, label = "Next page", enabled = pages.index < pages.count - 1) { pages.go(pages.index + 1) }
     Spacer(Modifier.weight(1f))
     trailing()
   }
@@ -161,8 +161,8 @@ private fun PageStrip(pages: Pages, marked: (Int) -> Boolean) {
       val thumb = rememberBitmap(pages.thumbs?.getOrNull(i)?.path, 200)
       Column(Modifier.width(52.dp).tap(scaleTo = 0.92f, label = "Page ${i + 1}") { pages.go(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
-          Modifier.size(52.dp, 70.dp).clip(RoundedCornerShape(6.dp)).background(c.page)
-            .border(if (on) 2.dp else 1.dp, if (on) c.accent else c.lineStrong, RoundedCornerShape(6.dp)),
+          Modifier.size(52.dp, 70.dp).clip(RoundedCornerShape(10.dp)).background(Color.White)
+            .border(if (on) 2.dp else 1.dp, if (on) c.accent else c.lineStrong, RoundedCornerShape(10.dp)),
           contentAlignment = Alignment.Center,
         ) {
           if (thumb != null) Image(thumb, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
@@ -476,7 +476,7 @@ fun FillSignEditor(p: EditorProps) {
       if (selected.kind == "text") IconBtn(I.pencilOutline, label = "Edit text") { typing = sel }
       IconBtn(I.formatFontSizeDecrease, label = "Smaller") { scale(sel, 1 / 1.18f) }
       IconBtn(I.formatFontSizeIncrease, label = "Bigger") { scale(sel, 1.18f) }
-      IconBtn(I.deleteOutline, color = c.accent, label = "Remove") { val i = sel; sel = -1; set { l -> l.filterIndexed { j, _ -> j != i } } }
+      IconBtn(I.deleteOutline, color = if (c.dark) Color(0xFFFFB4B8) else Brand.danger, label = "Remove") { val i = sel; sel = -1; set { l -> l.filterIndexed { j, _ -> j != i } } }
     }
   }
 

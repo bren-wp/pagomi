@@ -12,7 +12,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -240,7 +239,7 @@ fun PdfViewerScreen(path: String, name: String) {
   }
 
   if (editing) AppDialog({ editing = false }, "Edit document", "Choose how you want to edit this PDF.") {
-    Column(Modifier.height(340.dp).verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxWidth()) {
       listOf("fillSign", "organize", "crop", "redact", "rotate", "watermark", "pageNumbers", "compress", "ocr", "password", "metadata").mapNotNull(::toolById).forEach { tool ->
         MenuRow(I.fileDocumentEditOutline, tool.title) {
           editing = false
