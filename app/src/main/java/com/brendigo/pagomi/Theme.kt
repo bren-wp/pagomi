@@ -57,9 +57,9 @@ data class Palette(
 )
 
 val LightPalette = Palette(
-  bg = Brand.paper, surface = Color(0xFFFFFFFF), sunken = Brand.primarySoft, page = Color(0xFFFFFFFF),
-  ink = Brand.cherry, sub = Color(0xFF52636E), faint = Color(0xFF78858E), line = Color(0xFFE2DFF2),
-  lineStrong = Color(0xFFCFD7D9), accent = Brand.tangerine, accentSoft = Brand.primarySoft, accentInk = Color(0xFF5448C3),
+  bg = Color(0xFFF7F5FC), surface = Color(0xFFFCFAFF), sunken = Color(0xFFF1EDF9), page = Color(0xFFFFFFFF),
+  ink = Brand.cherry, sub = Color(0xFF655F80), faint = Color(0xFF827B9A), line = Color(0xFFE2DFF2),
+  lineStrong = Color(0xFFE0D9F2), accent = Brand.tangerine, accentSoft = Brand.primarySoft, accentInk = Color(0xFF5448C3),
   onInk = Color(0xFFFFFFFF),
   hero = listOf(Color(0xFF8175EE), Brand.primary, Color(0xFF403978)),
   panel = Brand.cherry, onPanel = Color(0xFFFFFFFF), onPanelSub = Color(0xFFBECBD2),
@@ -112,12 +112,12 @@ object Type {
     fontFamily = Poppins, fontWeight = weight, fontSize = size.sp,
     lineHeight = (line ?: (size * 1.32f)).sp, letterSpacing = spacing.sp,
   )
-  val largeTitle = s(32f, FontWeight.SemiBold, 42f, -0.5f)
-  val title = s(25f, FontWeight.SemiBold, 33f, -0.3f)
-  val hero = s(25f, FontWeight.SemiBold, 33f, -0.4f)
-  val body = s(15f, FontWeight.Normal, 22f)
-  val small = s(13f, FontWeight.Normal, 19f)
-  val item = s(15f, FontWeight.Medium)
+  val largeTitle = s(24f, FontWeight.SemiBold, 31f, -0.4f)
+  val title = s(21f, FontWeight.SemiBold, 28f, -0.3f)
+  val hero = s(19f, FontWeight.SemiBold, 25f, -0.3f)
+  val body = s(14f, FontWeight.Normal, 20f)
+  val small = s(12f, FontWeight.Normal, 17f)
+  val item = s(14f, FontWeight.Medium)
   val label = s(13f, FontWeight.SemiBold)
   val button = s(15f, FontWeight.SemiBold)
   val num = s(12.5f, FontWeight.Medium)

@@ -59,7 +59,17 @@ fun SettingsTab() {
     PagomiHeader()
     LargeTitle("Settings", "Manage your preferences, storage and privacy.")
 
-    GroupLabel("Appearance", first = true)
+    Row(Modifier.fillMaxWidth().background(c.accentSoft, RoundedCornerShape(Radius.card)).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+      Icon(I.shieldCheckOutline, 28.dp, c.accentInk)
+      Column(Modifier.weight(1f).padding(start = 12.dp)) {
+        T("Your documents, your control", Type.bold)
+        T("Local processing · No account required", Type.small, c.sub)
+      }
+    }
+    GroupLabel("Storage & sync")
+    DriveBackup()
+
+    GroupLabel("Appearance")
     ThemePicker()
 
     GroupLabel("Storage")
@@ -80,9 +90,6 @@ fun SettingsTab() {
         onClick = { ScanPrefs.save(!ScanPrefs.searchable) },
       ) { Toggle(ScanPrefs.searchable) { ScanPrefs.save(it) } }
     }
-
-    GroupLabel("Google Drive")
-    DriveBackup()
 
     GroupLabel("Privacy")
     Group {

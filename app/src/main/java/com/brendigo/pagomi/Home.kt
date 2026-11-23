@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -60,12 +61,12 @@ fun ToolsHub() {
     SearchField(q, { q = it }, "Search tools or files…")
 
     if (!searching) {
-      Column(Modifier.padding(top = 16.dp).fillMaxWidth().background(Brush.linearGradient(c.hero), RoundedCornerShape(Radius.hero)).padding(18.dp)) {
+      Column(Modifier.padding(top = 12.dp).fillMaxWidth().background(Brush.linearGradient(c.hero), RoundedCornerShape(Radius.hero)).padding(13.dp)) {
         T("Powerful PDF tools", Type.hero, Color.White)
         T("Merge, split, sign and organize documents on your device.", Type.small, Color.White, Modifier.padding(top = 6.dp))
       }
       Row(
-        Modifier.padding(top = 22.dp).horizontalScroll(rememberScrollState()),
+        Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         Chip("All tools", section == -1) { section = -1 }
@@ -141,12 +142,12 @@ private fun ToolCard(t: Tool, modifier: Modifier, shared: Boolean, onClick: () -
     modifier.fillMaxHeight().tap(shape = shape, scaleTo = 0.96f, label = t.title, onClick = onClick)
       .background(c.surface, shape).border(0.6.dp, c.lineStrong, shape),
   ) {
-    Row(Modifier.fillMaxWidth().padding(start = 10.dp, end = 26.dp, top = 14.dp, bottom = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-      ArtTile(t.id, 36.dp, if (shared) Modifier.sharedArt(t.id) else Modifier)
+    Row(Modifier.fillMaxWidth().padding(start = 9.dp, end = 24.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+      ArtTile(t.id, 30.dp, if (shared) Modifier.sharedArt(t.id) else Modifier)
       Spacer(Modifier.size(8.dp))
       Column(Modifier.weight(1f)) {
-        T(t.title, Type.bold, maxLines = 3)
-        T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 15.sp), c.sub, Modifier.padding(top = 4.dp), maxLines = 3)
+        T(t.title, Type.bold.copy(fontSize = 12.sp, lineHeight = 16.sp), maxLines = 3)
+        T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 15.sp), c.sub, Modifier.padding(top = 2.dp), maxLines = 3)
       }
     }
     // Always there, so pinning is found without a hidden long-press: faint outline off, solid Tangerine on.
@@ -171,21 +172,21 @@ fun Home() {
     SearchField(query, { query = it }, "Search files, tools, or documents…")
     if (tokens.isEmpty()) {
       val shape = RoundedCornerShape(26.dp)
-      Row(Modifier.padding(top = 18.dp).fillMaxWidth().tap(shape = shape, label = "Scan Document") { nav.scan() }
-        .background(Brush.linearGradient(listOf(Color(0xFF8175EE), Brand.primary, Color(0xFF403978))), shape).padding(18.dp),
+      Row(Modifier.padding(top = 12.dp).fillMaxWidth().tap(shape = shape, label = "Scan Document") { nav.scan() }
+        .background(Brush.linearGradient(listOf(Color(0xFF8175EE), Brand.primary, Color(0xFF403978))), shape).padding(13.dp),
         verticalAlignment = Alignment.CenterVertically) {
-        Icon(I.lineScan, 32.dp, Color.White)
-        Spacer(Modifier.size(14.dp))
+        Icon(I.lineScan, 27.dp, Color.White)
+        Spacer(Modifier.size(10.dp))
         Column(Modifier.weight(1f)) {
-          T("Scan Document", Type.hero, Color.White)
+          T("Scan Document", Type.hero.copy(fontSize = 17.sp, lineHeight = 23.sp), Color.White)
           T("Turn paper and photos into clean, high-quality PDFs.", Type.small, Color.White)
         }
         Icon(I.arrowRight, 22.dp, Color.White)
       }
       val importShape = RoundedCornerShape(Radius.card)
-      Row(Modifier.padding(top = 12.dp).fillMaxWidth().tap(shape = importShape, label = "Import PDF") {
+      Row(Modifier.padding(top = 8.dp).fillMaxWidth().tap(shape = importShape, label = "Import PDF") {
         scope.launch { pickPdfs(false).firstOrNull()?.let { openFile(it.path, it.name) } }
-      }.background(c.surface, importShape).border(1.dp, c.line, importShape).padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+      }.background(c.surface, importShape).border(1.dp, c.line, importShape).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(I.filePdfBox, 28.dp, c.accent)
         Spacer(Modifier.size(12.dp))
         Column(Modifier.weight(1f)) {
@@ -194,14 +195,14 @@ fun Home() {
         }
         Icon(I.chevronRight, 20.dp, c.sub)
       }
-      Row(Modifier.padding(top = 18.dp).fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      Row(Modifier.padding(top = 12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         actions.forEach { (id, label) ->
           val tile = RoundedCornerShape(18.dp)
-          Column(Modifier.size(width = 65.dp, height = 76.dp).tap(shape = tile, label = label) { nav.tool(id) }
+          Column(Modifier.weight(1f).heightIn(min = 56.dp).tap(shape = tile, label = label) { nav.tool(id) }
             .background(if (id == "ocr" && !c.dark) Brand.mint else c.accentSoft, tile).padding(5.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            ToolArt(id, 28.dp)
-            T(label, Type.num, c.ink, maxLines = 1)
+            ToolArt(id, 24.dp)
+            T(label, Type.num.copy(fontSize = 10.sp), c.ink, maxLines = 1)
           }
         }
       }

@@ -73,6 +73,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -235,11 +236,10 @@ private fun MainShell() {
   val draft = Drafts.current
   val draftTool = draft?.let { toolById(it.tool) }
   val holder = rememberSaveableStateHolder()
-  val haze = rememberHazeState() // the tabs are what the bar blurs as they scroll under it
-  Box(Modifier.fillMaxSize().background(c.bg)) {
-    CompositionLocalProvider(LocalBottomRoom provides if (draftTool != null) 180.dp else 112.dp) {
+  Column(Modifier.fillMaxSize().background(c.bg).navigationBarsPadding()) {
+    CompositionLocalProvider(LocalBottomRoom provides 24.dp) {
       AnimatedContent(
-        nav.tab, Modifier.hazeSource(haze), label = "tab",
+        nav.tab, Modifier.weight(1f).fillMaxWidth(), label = "tab",
         // Slides the way the tab bar reads: a tab to the right comes in from the right and pushes this one left.
         transitionSpec = {
           val dir = if (targetState.ordinal > initialState.ordinal) 1 else -1
@@ -257,7 +257,7 @@ private fun MainShell() {
         }
       }
     }
-    Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 14.dp)) {
+    Column(Modifier.fillMaxWidth().background(c.surface)) {
       AnimatedVisibility(
         draftTool != null,
         enter = slideInVertically(spring(0.75f, Spring.StiffnessMediumLow)) { it } + fadeIn(),
@@ -265,7 +265,7 @@ private fun MainShell() {
       ) {
         if (draft != null && draftTool != null) ResumeBar(draftTool, draft.files.size)
       }
-      NavPill(haze)
+      NavPill()
     }
   }
 }
@@ -299,25 +299,25 @@ private fun ResumeBar(tool: Tool, files: Int) {
 // The floating pill from the reference, in frosted glass: the page blurs behind it and a wide orange capsule slides to
 // the open tab. The camera is one more icon in the row; it opens the scanner instead of a tab, so it never lights up.
 @Composable
-private fun NavPill(haze: HazeState) {
+private fun NavPill() {
   val nav = LocalNav.current
   val slots = listOf<Pair<Tab?, Int>>(Tab.Home to I.homeOutline, null to I.lineScan, Tab.Files to I.folderOutline, Tab.Tools to I.viewGridOutline, Tab.Settings to I.cogOutline)
   val labels = listOf("Home", "Scan", "Files", "Tools", "Settings")
-  val shape = RoundedCornerShape(26.dp)
-  Row(Modifier.padding(horizontal = 12.dp).fillMaxWidth().height(68.dp).shadow(8.dp, shape)
-    .background(c.surface, shape).border(1.dp, c.line, shape).padding(5.dp),
+  val shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+  Row(Modifier.fillMaxWidth().height(58.dp)
+    .background(c.surface, shape).padding(horizontal = 8.dp, vertical = 5.dp),
     verticalAlignment = Alignment.CenterVertically) {
     slots.forEachIndexed { i, (tab, glyph) ->
       val on = tab != null && nav.tab == tab
       val tint = if (on) c.accentInk else c.ink
-      val tile = RoundedCornerShape(20.dp)
+      val tile = RoundedCornerShape(14.dp)
       Column(Modifier.weight(1f).fillMaxSize().tap(shape = tile, scaleTo = 0.94f, label = labels[i]) {
         if (tab == null) nav.scan() else nav.show(tab)
       }.background(if (on) c.accentSoft else Color.Transparent, tile),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Icon(glyph, 22.dp, tint)
+        Icon(glyph, 21.dp, tint)
         Spacer(Modifier.height(3.dp))
-        T(labels[i], Type.num, tint, maxLines = 1)
+        T(labels[i], Type.num.copy(fontSize = 10.sp), tint, maxLines = 1)
       }
     }
   }
