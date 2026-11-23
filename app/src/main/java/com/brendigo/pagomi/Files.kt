@@ -139,7 +139,7 @@ fun FilesTab() {
       Segmented(listOf(Place.Saved to "Saved", Place.Phone to "Browse", Place.Drive to "Drive"), place, icons = listOf(I.folderOutline, I.cellphone, I.googleDrive)) { place = it; query = "" }
       Spacer(Modifier.height(12.dp))
     }
-    SearchField(query, { query = it }, if (place == Place.Phone) "Use Browse to select a PDF…" else "Search files…")
+    if (place != Place.Phone) SearchField(query, { query = it }, "Search files…")
 
     AnimatedContent(place, label = "place", transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { where ->
       Column {
