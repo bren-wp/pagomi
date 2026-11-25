@@ -59,6 +59,7 @@ fun SettingsTab() {
 
   var section by rememberSaveable { mutableStateOf<String?>(null) }
   BackHandler(section != null) { section = null }
+  androidx.compose.runtime.key(section) {
   Screen {
     if (section == null) {
       PagomiHeader()
@@ -139,8 +140,10 @@ fun SettingsTab() {
         onClick = { openUrl(FEEDBACK_FORM) },
       ) { Icon(I.openInNew, 18.dp, c.faint) }
     } }
+        else -> Unit
       }
     }
+  }
   }
 
   if (terms) FullSheet({ terms = false }) { Consent(onClose = { terms = false }) }

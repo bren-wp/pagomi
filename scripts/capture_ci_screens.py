@@ -261,7 +261,12 @@ def main():
     adb("shell", "pm", "grant", APP, "android.permission.CAMERA")
     start()
     capture("home", ["Scan Document"])
-    navigate("document-Project_Proposal.pdf")
+    # Compact dashboards may show fewer recent documents; the library still exposes every file.
+    if visible_choices(hierarchy(), "document-Project_Proposal.pdf"):
+        navigate("document-Project_Proposal.pdf")
+    else:
+        navigate("Files")
+        navigate("Project_Proposal")
     capture("pdf-editor", ["Edit PDF", "Page 1 of 3"])
     back()
     navigate("Scan")

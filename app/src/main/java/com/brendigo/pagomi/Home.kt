@@ -70,8 +70,9 @@ fun ToolsHub() {
   val filesSelected = searching && found.isNotEmpty() && (showFiles || tools.isEmpty())
   BoxWithConstraints(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 2.dp)) {
     val compact = maxHeight < 470.dp
+    val showHeader = maxHeight >= 280.dp
     Column(Modifier.fillMaxSize()) {
-      if (maxHeight >= 280.dp) PagomiHeader()
+      if (showHeader) PagomiHeader()
       LargeTitle("Tools", if (compact) null else "Powerful PDF tools to edit, organize, and work smarter.")
       SearchField(q, { q = it; showFiles = false }, "Search tools or files…", Modifier.testTag("tools-search"))
       if (!searching) {
@@ -112,7 +113,7 @@ fun ToolsHub() {
         val count = ((total + capacity - 1) / capacity).coerceAtLeast(1)
         var current by rememberSaveable(q, section, filesSelected, capacity) { mutableStateOf(0) }
         val page = current.coerceIn(0, count - 1)
-        val tileHeight = ((available - (rows - 1) * 8.dp) / rows).coerceAtLeast(1.dp)
+        val tileHeight = ((available - 8.dp * (rows - 1)) / rows).coerceAtLeast(1.dp)
         Column(Modifier.fillMaxSize()) {
           if (total == 0) {
             T(if (searching) "No matching files or tools." else "Pin your favourite tools to find them here.",
@@ -187,9 +188,13 @@ fun Home() {
   var query by rememberSaveable { mutableStateOf("") }
   val tokens = query.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
   val actions = listOf("merge" to "Merge", "fillSign" to "Sign", "ocr" to "OCR", "compress" to "Compress", "split" to "Split")
-  Screen {
-    PagomiHeader()
-    LargeTitle(greeting(), SimpleDateFormat("'Today is' EEE, MMM d, yyyy", LocalLocale.current.platformLocale).format(Date()))
+  BoxWithConstraints(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 2.dp)) {
+    val compact = maxHeight < 520.dp
+    val showHeader = maxHeight >= 280.dp
+    val narrow = maxWidth < 340.dp
+    Column(Modifier.fillMaxSize()) {
+    if (showHeader) PagomiHeader()
+    LargeTitle(greeting(), if (compact) null else SimpleDateFormat("'Today is' EEE, MMM d, yyyy", LocalLocale.current.platformLocale).format(Date()))
     SearchField(query, { query = it }, "Search files, tools, or documents…")
     if (tokens.isEmpty()) {
       val shape = RoundedCornerShape(26.dp)
@@ -200,9 +205,9 @@ fun Home() {
         Spacer(Modifier.size(10.dp))
         Column(Modifier.weight(1f)) {
           T("Scan Document", Type.hero.copy(fontSize = 17.sp, lineHeight = 23.sp), Color.White)
-          T("Turn paper and photos into clean, high-quality PDFs.", Type.small, Color.White)
+          if (!compact) T("Turn paper and photos into clean, high-quality PDFs.", Type.small, Color.White)
         }
-        ToolArt("scan", 42.dp)
+        if (!compact && !narrow) ToolArt("scan", 42.dp)
         Icon(I.arrowRight, 18.dp, Color.White)
       }
       val importShape = RoundedCornerShape(Radius.card)
@@ -213,25 +218,33 @@ fun Home() {
         Spacer(Modifier.size(12.dp))
         Column(Modifier.weight(1f)) {
           T("Import PDF", Type.item)
-          T("Add a PDF from your device", Type.small, c.sub)
+          if (!compact) T("Add a PDF from your device", Type.small, c.sub)
         }
         Icon(I.chevronRight, 20.dp, c.sub)
       }
-      Row(Modifier.padding(top = 12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+      Row(Modifier.padding(top = if (compact) 8.dp else 12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         actions.forEach { (id, label) ->
           val tile = RoundedCornerShape(18.dp)
-          Column(Modifier.weight(1f).heightIn(min = 56.dp).tap(shape = tile, label = label) { nav.tool(id) }
+          Column(Modifier.weight(1f).heightIn(min = if (compact) 48.dp else 56.dp).tap(shape = tile, label = label) { nav.tool(id) }
             .background(if (id == "ocr" && !c.dark) Brand.mint else c.accentSoft, tile).padding(5.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            ToolArt(id, 24.dp)
+            ToolArt(id, if (compact) 20.dp else 24.dp)
             T(label, Type.num.copy(fontSize = 10.sp, lineHeight = 13.sp), c.ink, maxLines = 2, align = TextAlign.Center)
           }
         }
       }
       GroupLabel("Recent files", "See All", { nav.show(Tab.Files) }, caps = false)
-      if (files.isEmpty()) T("Your scanned and imported documents will appear here.", Type.body, c.sub, Modifier.padding(vertical = 16.dp))
-      else DashboardFiles(files.take(3))
+      BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+        val rowHeight = 62.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+        val visible = ((maxHeight + 8.dp) / (rowHeight + 8.dp)).toInt().coerceIn(0, 3)
+        if (files.isEmpty()) {
+          T("Your scanned and imported documents will appear here.", Type.small, c.sub, Modifier.padding(vertical = 8.dp))
+        } else if (visible > 0) {
+          DashboardFiles(files.take(visible), rowHeight)
+        }
+      }
     } else {
+      PagedColumn(Modifier.weight(1f).fillMaxWidth()) {
       val found = files.filter { matches(it.name, tokens) }
       val tools = TOOLS.filter { matches("${it.title} ${it.desc}", tokens) }
       if (found.isNotEmpty()) {
@@ -243,6 +256,8 @@ fun Home() {
         ToolGrid(tools) { nav.tool(it.id) }
       }
       if (found.isEmpty() && tools.isEmpty()) T("No matching files or tools.", Type.body, c.sub, Modifier.padding(top = 24.dp))
+      }
+    }
     }
   }
 }
