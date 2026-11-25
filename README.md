@@ -38,14 +38,72 @@ From the receipt in your pocket to the document you need to sign, **pagomi.** br
 
 ## See pagomi. in action
 
-Real Android screens from pagomi. 0.1.7.
+Actual Android screenshots from pagomi. 0.1.8, using sample documents.
 
 <p align="center">
-  <img src="brending/screenshots/0.1.7/home.png" alt="Home — pagomi. Android" width="30%">
-  <img src="brending/screenshots/0.1.7/files.png" alt="My Files — pagomi. Android" width="30%">
-  <img src="brending/screenshots/0.1.7/tools.png" alt="PDF Tools — pagomi. Android" width="30%">
-  <img src="brending/screenshots/0.1.7/settings.png" alt="Settings — pagomi. Android" width="30%">
-  <img src="brending/screenshots/0.1.7/onboarding.png" alt="Welcome — pagomi. Android" width="30%">
+  <img src="brending/screenshots/0.1.8/home.png" alt="Home" width="30%">
+  <img src="brending/screenshots/0.1.8/scanner.png" alt="Scanner" width="30%">
+  <img src="brending/screenshots/0.1.8/review-scan.png" alt="Review Scan" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/pdf-editor.png" alt="PDF Editor" width="30%">
+  <img src="brending/screenshots/0.1.8/files.png" alt="My Files" width="30%">
+  <img src="brending/screenshots/0.1.8/tools.png" alt="PDF Tools" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/settings.png" alt="Settings" width="30%">
+  <img src="brending/screenshots/0.1.8/onboarding.png" alt="Welcome" width="30%">
+</p>
+
+### A tool for every document
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-alternate.png" alt="Alternate &amp; Mix" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-compress.png" alt="Compress PDF" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-crop.png" alt="Crop &amp; Resize" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-fillSign.png" alt="Fill &amp; Sign" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-flip.png" alt="Flip PDF" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-merge.png" alt="Merge PDFs" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-metadata.png" alt="Edit PDF Details" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-nup.png" alt="Multiple Pages Per Sheet" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-ocr.png" alt="Text Recognition" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-organize.png" alt="Organize Pages" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-pageNumbers.png" alt="Page Numbers" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-password.png" alt="Set Password" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-redact.png" alt="Redact PDF" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-rotate.png" alt="Rotate PDF" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-split.png" alt="Split PDF" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-splitBookmarks.png" alt="Split by Bookmarks" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-splitHalf.png" alt="Split in Half" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-splitSize.png" alt="Split by Size" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-splitText.png" alt="Split by Text" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-unlock.png" alt="Remove Password" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-watermark.png" alt="Watermark" width="30%">
+</p>
+
+<p align="center">
+  <img src="brending/screenshots/0.1.8/tool-workflow.png" alt="Workflow Builder" width="30%">
+  <img src="brending/screenshots/0.1.8/tool-zip.png" alt="PDF to ZIP" width="30%">
 </p>
 
 ## Your best work starts with a page.

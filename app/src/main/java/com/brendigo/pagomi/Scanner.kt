@@ -140,7 +140,7 @@ fun Scanner(id: String?) {
       back()
       saved.pdf?.let { openFile(it.path, it.name) }
     } catch (e: Exception) {
-      failure = e.message ?: "Something went wrong."
+      failure = "The document couldn’t be scanned. Try again."
     }
   }
 
@@ -525,7 +525,7 @@ private fun RecentScans(onClose: () -> Unit, onPick: (ScanDoc) -> Unit) {
           Icon(I.lineScan, 48.dp, ScanUi.dim)
           T("Scans you make appear here, so you can edit them again later.", Type.body, ScanUi.dim, Modifier.padding(top = 12.dp), align = TextAlign.Center)
         }
-      } else Column(Modifier.verticalScroll(rememberScrollState())) {
+      } else PagedColumn(Modifier.weight(1f).fillMaxWidth()) {
         docs.forEachIndexed { i, d ->
           Stagger(i) {
             Row(Modifier.fillMaxWidth().tap(pressed = ScanUi.panel) { onPick(d) }.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {

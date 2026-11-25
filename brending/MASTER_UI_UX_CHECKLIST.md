@@ -163,3 +163,16 @@ Do not claim 1:1 completion or Play-ready status merely because CI passes. Never
 | Screen/state | Commit | Reference/hash | Device/API/viewport/theme | Screenshot | Diff | Test | Accepted |
 |---|---|---|---|---|---|---|---|
 | Example (not evidence) | — | — | — | — | — | — | No |
+
+## Fixed-screen requirement (0.1.9)
+
+- [ ] No free vertical swipe on app screens, tool forms, settings, onboarding, pickers, lists or modal content. Overflow remains accessible via explicit Previous/Next controls, with no unreachable actions.
+- [ ] No visible developer labels (including `Local`, `Debug`, internal paths, raw exception messages or stack traces).
+- [ ] Verify small and large screens, font scaling, keyboard, TalkBack and every page boundary; PDF content navigation and zoom must stay usable.
+- [ ] Recapture and compare against approved references before claiming pixel-perfect acceptance.
+
+## Fixed catalog and settings navigation (0.1.10)
+
+- Tools now renders bounded, discrete pages: fixed header/search, visible cards only, and explicit page controls. All tools remain reachable by search and category. No scroll gesture or offset navigation is used in the catalog.
+- Settings opens individual preference pages rather than placing all controls in one long form. No unavailable premium account, notification, or language control is invented.
+- Verify every screen with real captures and compare approved reference assets; only measured matches may be called pixel-perfect. Other forms still use the bounded section fallback and must be migrated individually where needed.

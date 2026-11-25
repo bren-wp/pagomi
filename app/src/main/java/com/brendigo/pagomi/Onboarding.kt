@@ -214,7 +214,7 @@ private fun Hand(text: String, modifier: Modifier) {
 
 @Composable
 private fun PageTools(pinned: List<String>, onToggle: (String) -> Unit) {
-  Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).verticalScroll(rememberScrollState())) {
+  PagedColumn(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
     Spacer(Modifier.height(64.dp))
     Title("Pin Your\nFavourite Tools", "Pinned tools sit at the top of Home.")
     Spacer(Modifier.height(22.dp))
@@ -241,7 +241,7 @@ private fun PageTools(pinned: List<String>, onToggle: (String) -> Unit) {
 @Composable
 private fun PageLook(looks: PagerState) {
   val look = LOOKS[looks.currentPage]
-  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+  PagedColumn(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
     Spacer(Modifier.height(56.dp))
     Column(Modifier.padding(horizontal = 20.dp)) { Title("Which Look\nSuits You?") }
     Spacer(Modifier.height(8.dp))

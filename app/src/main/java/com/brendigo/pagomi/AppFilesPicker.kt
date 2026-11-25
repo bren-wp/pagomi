@@ -136,10 +136,10 @@ fun AppFilesPicker(multi: Boolean, already: List<String>, onClose: () -> Unit, o
         }
       }
 
-      Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp)) {
+      PagedColumn(Modifier.weight(1f).padding(16.dp)) {
         if (onDrive && drive == null && problem.isEmpty()) {
           Spinner(c.accent, modifier = Modifier.padding(top = 40.dp).align(Alignment.CenterHorizontally))
-          return@Column
+          return@PagedColumn
         }
         // Anything else on the phone (Downloads, other apps' files) through the system picker, from this same sheet.
         if (!onDrive && needle.isEmpty() && folder == null) Group {

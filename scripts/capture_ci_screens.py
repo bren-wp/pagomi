@@ -65,21 +65,93 @@ def bounds(node):
     return [int(x) for x in re.findall(r"\d+", node.get("bounds", ""))]
 
 def capture(name, expected):
-    wait_for(lambda r: all(nodes(r, label) for label in expected), name)
+    root = wait_for(lambda r: all(nodes(r, label) for label in expected), name)
+    for forbidden in ("Local", "Local processing · No account required", "Debug", "Developer mode"):
+        if nodes(root, forbidden):
+            raise RuntimeError("Unwanted label " + forbidden + " in " + name)
     time.sleep(1)
     png = adb("exec-out", "screencap", "-p", text=False)
     if not png.startswith(b"\x89PNG\r\n\x1a\n"):
         raise RuntimeError("Invalid screen capture: " + name)
     (OUT / (name + ".png")).write_bytes(png)
 
-def navigate(label):
-    root = wait_for(lambda r: bool(nodes(r, label)), label)
-    choices = [bounds(n) for n in nodes(root, label)]
-    choices = [b for b in choices if len(b) == 4 and b[2] > b[0] and b[3] > b[1]]
-    if not choices:
-        raise RuntimeError("No visible bounds for " + label)
+def visible_choices(root, label, enabled=False):
+    choices = []
+    for node in nodes(root, label):
+        if enabled and node.get("enabled") != "true":
+            continue
+        b = bounds(node)
+        if len(b) == 4 and b[2] > b[0] and b[3] > b[1]:
+            choices.append(b)
+    return choices
+
+def tap_bounds(choices):
     x1, y1, x2, y2 = max(choices, key=lambda b: b[3])
     adb("shell", "input", "tap", str((x1+x2)//2), str((y1+y2)//2))
+
+def section_node(root, tag):
+    return next((n for n in root.iter("node")
+                 if n.get("resource-id") == tag and n.get("clickable") == "true"), None)
+
+def section_enabled(root, tag):
+    node = section_node(root, tag)
+    return node is not None and node.get("enabled") == "true"
+
+def section_status(root):
+    node = next((n for n in root.iter("node") if n.get("resource-id") == "section-indicator"), None)
+    return node.get("text", "") if node is not None else ""
+
+def turn_section(root, tag):
+    node = section_node(root, tag)
+    if node is None or node.get("enabled") != "true":
+        raise RuntimeError("Section control unavailable: " + tag)
+    before = section_status(root)
+    tap_bounds([bounds(node)])
+    return wait_for(lambda r: section_status(r) != before, "section change after " + tag)
+
+def navigate(label):
+    for _ in range(100):
+        root = wait_for(lambda r: bool(visible_choices(r, label)) or section_enabled(r, "section-next"), label)
+        choices = visible_choices(root, label)
+        if choices:
+            tap_bounds(choices)
+            return
+        turn_section(root, "section-next")
+    raise RuntimeError("Not reachable by section navigation: " + label)
+
+def reset_section():
+    root = hierarchy()
+    for _ in range(100):
+        if not section_enabled(root, "section-previous"):
+            status = section_status(root)
+            if status and not status.startswith("1 / "):
+                raise RuntimeError("Previous unavailable before first section: " + status)
+            return
+        root = turn_section(root, "section-previous")
+    raise RuntimeError("Could not return to the first section: " + section_status(root))
+
+def verify_fixed_tools():
+    reset_section()
+    root = wait_for(lambda r: bool(visible_choices(r, "tools-search")), "tools search")
+    initial = visible_choices(root, "tools-search")[0]
+    before = section_status(root)
+    if not section_enabled(root, "section-next"):
+        raise RuntimeError("Expected more than one section in the full tool catalog")
+    size = re.findall(r"(\d+)x(\d+)", adb("shell", "wm", "size"))
+    w, h = map(int, size[-1])
+    adb("shell", "input", "swipe", str(w//2), str(h*7//10), str(w//2), str(h*3//10), "400")
+    time.sleep(0.5)
+    root = hierarchy()
+    current = visible_choices(root, "tools-search")
+    if not current or current[0] != initial or section_status(root) != before:
+        raise RuntimeError("Tools screen moves on vertical swipe")
+    root = turn_section(root, "section-next")
+    if not section_enabled(root, "section-previous"):
+        raise RuntimeError("Next section did not enable previous section")
+    reset_section()
+    root = wait_for(lambda r: bool(visible_choices(r, "tools-search")), "restored tools search")
+    if section_status(root) != before or visible_choices(root, "tools-search")[0] != initial:
+        raise RuntimeError("Page controls did not restore Tools")
 
 def start():
     adb("shell", "am", "start", "-W", "-n", ACTIVITY)
@@ -156,6 +228,7 @@ def back():
 
 def capture_tools():
     for tool_id, (query, title) in TOOL_QUERIES.items():
+        reset_section()
         root = wait_for(lambda r: bool(nodes(r, "tools-search")), "tool search")
         if nodes(root, "Clear"):
             navigate("Clear")
@@ -188,8 +261,21 @@ def main():
     adb("shell", "pm", "grant", APP, "android.permission.CAMERA")
     start()
     capture("home", ["Scan Document"])
-    navigate("document-Project_Proposal.pdf")
-    capture("pdf-editor", ["Edit PDF", "Page 1 of 3"])
+    # Compact dashboards may show fewer recent documents; the library still exposes every file.
+    if visible_choices(hierarchy(), "document-Project_Proposal.pdf"):
+        navigate("document-Project_Proposal.pdf")
+    else:
+        navigate("Files")
+        navigate("file-Project_Proposal.pdf")
+    capture("pdf-editor", ["Edit PDF", "Page 1 of 3", "pdf-page-1"])
+    original = visible_choices(hierarchy(), "pdf-page-1")[0]
+    x1, y1, x2, y2 = original
+    adb("shell", "input", "swipe", str((x1+x2)//2), str(y1+(y2-y1)*3//4), str((x1+x2)//2), str(y1+(y2-y1)//4), "400")
+    wait_for(lambda r: bool(visible_choices(r, "pdf-page-1")) and bool(nodes(r, "Page 1 of 3")), "page fixed after swipe")
+    navigate("Next page")
+    capture("pdf-editor-page-2", ["Page 2 of 3", "pdf-page-2"])
+    navigate("Previous page")
+    wait_for(lambda r: bool(visible_choices(r, "pdf-page-1")), "previous page")
     back()
     navigate("Scan")
     capture("scanner", ["Import photos"])
@@ -199,8 +285,17 @@ def main():
     back()
     navigate("Files")
     capture("files", ["My Files"])
+    initial = visible_choices(hierarchy(), "files-search")
+    if not initial:
+        raise RuntimeError("Files search not visible")
+    dims = re.findall(r"(\d+)x(\d+)", adb("shell", "wm", "size"))
+    w, h = map(int, dims[-1])
+    adb("shell", "input", "swipe", str(w//2), str(h*7//10), str(w//2), str(h*3//10), "400")
+    if visible_choices(hierarchy(), "files-search") != initial:
+        raise RuntimeError("Files header moves on vertical swipe")
     navigate("Tools")
     capture("tools", ["Powerful PDF tools"])
+    verify_fixed_tools()
     navigate("Settings")
     capture("settings", ["Manage your preferences, storage and privacy."])
     navigate("Tools")
@@ -217,4 +312,13 @@ def main():
     }, indent=2) + "\n")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        OUT.mkdir(parents=True, exist_ok=True)
+        try:
+            (OUT / "failure-hierarchy.xml").write_bytes(ET.tostring(hierarchy(), encoding="utf-8"))
+            (OUT / "failure-screen.png").write_bytes(adb("exec-out", "screencap", "-p", text=False))
+        except Exception as diagnostic_error:
+            print("Could not capture failure diagnostics:", diagnostic_error)
+        raise

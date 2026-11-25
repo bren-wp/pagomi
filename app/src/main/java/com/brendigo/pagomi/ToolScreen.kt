@@ -102,7 +102,7 @@ private fun DetailsEditor(p: EditorProps) {
       val now = withContext(Dispatchers.IO) { readDetails(File(file.path).readBytes()) }
       p.onChange { v -> now.entries.fold(v.with("for", file.path)) { acc, (k, s) -> acc.with(k, s) } }
     } catch (e: Exception) {
-      p.onError(e.message ?: "Could not read this PDF.")
+      p.onError("Could not read this PDF. Choose another document.")
     }
   }
   Options(DETAIL_FIELDS, p.value) { v -> p.onChange { v } }
@@ -191,11 +191,11 @@ fun ToolScreen(id: String, resume: Boolean, sourcePath: String = "", sourceName:
           else -> naming = outs to if (outs.size == 1) nameOf(outs[0]) else base
         }
       } catch (e: UserError) {
-        error = e.message ?: ""
+        error = "Couldn’t open this PDF. Please choose another document."
       } catch (_: OutOfMemoryError) {
         error = "This PDF is too big to work on in one go on this phone. Try splitting it first."
       } catch (e: Exception) {
-        error = e.message ?: "Something went wrong with this PDF."
+        error = "Couldn’t complete this action. Check your document and try again."
       }
       busy = ""
     }
@@ -489,7 +489,7 @@ private fun WatermarkEditor(p: EditorProps) {
         Triple(if (rot % 180 != 0) h.toFloat() to w.toFloat() else w.toFloat() to h.toFloat(), rot, renderThumbs(file.path, 480, 1)[0])
       }
     } catch (e: Exception) {
-      p.onError(e.message ?: "Could not read this PDF.")
+      p.onError("Could not read this PDF. Choose another document.")
     }
   }
   BoxWithConstraints(Modifier.fillMaxWidth().heightIn(min = 120.dp).background(c.sunken, RoundedCornerShape(Radius.group)).padding(12.dp), contentAlignment = Alignment.Center) {
