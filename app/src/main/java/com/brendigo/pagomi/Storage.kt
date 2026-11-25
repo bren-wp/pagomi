@@ -156,8 +156,11 @@ fun renameFile(f: Saved, newName: String): Saved {
   return dest.toSaved()
 }
 
-fun listFiles(folder: String? = null): List<Saved> =
-  (outputDirectory(folder)).listFiles()?.filter { it.isFile }?.map { it.toSaved() }?.sortedByDescending { it.modified } ?: emptyList()
+fun listFiles(folder: String? = null): List<Saved> {
+  // A folder can be removed by synchronization while its screen is open.
+  val dir = runCatching { outputDirectory(folder) }.getOrNull() ?: return emptyList()
+  return dir.listFiles()?.filter { it.isFile }?.map { it.toSaved() }?.sortedByDescending { it.modified } ?: emptyList()
+}
 
 /** Every file across the root and all folders (for global search), newest first. */
 fun listAllFiles(): List<Saved> = (listFiles() + listFolders().flatMap { listFiles(it.path) }).sortedByDescending { it.modified }
