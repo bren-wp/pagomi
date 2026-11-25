@@ -266,7 +266,7 @@ def main():
         navigate("document-Project_Proposal.pdf")
     else:
         navigate("Files")
-        navigate("Project_Proposal")
+        navigate("file-Project_Proposal.pdf")
     capture("pdf-editor", ["Edit PDF", "Page 1 of 3"])
     back()
     navigate("Scan")
@@ -277,6 +277,14 @@ def main():
     back()
     navigate("Files")
     capture("files", ["My Files"])
+    initial = visible_choices(hierarchy(), "files-search")
+    if not initial:
+        raise RuntimeError("Files search not visible")
+    dims = re.findall(r"(\d+)x(\d+)", adb("shell", "wm", "size"))
+    w, h = map(int, dims[-1])
+    adb("shell", "input", "swipe", str(w//2), str(h*7//10), str(w//2), str(h*3//10), "400")
+    if visible_choices(hierarchy(), "files-search") != initial:
+        raise RuntimeError("Files header moves on vertical swipe")
     navigate("Tools")
     capture("tools", ["Powerful PDF tools"])
     verify_fixed_tools()

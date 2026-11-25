@@ -43,7 +43,7 @@ object Store {
 }
 
 private val BAD = Regex("[\\\\/:*?\"<>|]+")
-fun cleanName(s: String) = s.replace(BAD, "_").trim()
+fun cleanName(s: String) = s.replace(BAD, "_").trim().takeUnless { it == "." || it == ".." }.orEmpty()
 
 fun rootFolder(): File = File(appContext.filesDir, "pagomi.").apply { mkdirs() }
 
@@ -52,7 +52,7 @@ fun createFolder(name: String): Folder {
   var d = File(rootFolder(), clean)
   var i = 2
   while (d.exists()) d = File(rootFolder(), "$clean (${i++})")
-  d.mkdirs()
+  check(d.mkdirs() && d.isDirectory) { "Could not create folder." }
   Store.changed()
   return Folder(d.name, d.path)
 }
@@ -63,14 +63,22 @@ fun listFolders(): List<Folder> = rootFolder().listFiles()?.filter { it.isDirect
 fun renameFolder(path: String, newName: String) {
   val clean = cleanName(newName)
   val d = File(path)
-  if (clean.isEmpty() || !d.exists() || d.name == clean) return
+  if (clean.isEmpty() || !insideRoot(path) || !d.isDirectory || d.name == clean) return
   val target = File(rootFolder(), clean)
   if (target.exists()) return // avoid collision with an existing folder
   if (d.renameTo(target)) relinkFolder(d.path, target.path)
   Store.changed()
 }
 
-private fun insideRoot(path: String) = File(path).canonicalPath.startsWith(rootFolder().canonicalPath + File.separator)
+private fun insideRoot(path: String) = runCatching { File(path).canonicalPath.startsWith(rootFolder().canonicalPath + File.separator) }.getOrDefault(false)
+
+private fun outputDirectory(path: String?): File {
+  val root = rootFolder()
+  if (path == null) return root
+  val dir = File(path)
+  require(dir.canonicalFile == root.canonicalFile || (insideRoot(path) && dir.canonicalFile.parentFile == root.canonicalFile && dir.isDirectory)) { "Invalid destination folder." }
+  return dir
+}
 
 // Only ever deletes inside the app's "pagomi." folder: never a file the user picked from their own storage.
 fun removeFolder(path: String) {
@@ -109,8 +117,10 @@ private fun moveInto(f: File, dir: File): File {
 }
 
 fun moveFile(path: String, folderPath: String) {
-  val f = File(path).takeIf { it.exists() } ?: return
-  relinkPdf(path, moveInto(f, File(folderPath)).toSaved()) // a scan's PDF stays linked to its scan wherever it goes
+  val f = File(path).takeIf { insideRoot(path) && it.isFile } ?: return
+  val dir = outputDirectory(folderPath)
+  if (f.parentFile?.canonicalFile == dir.canonicalFile) return
+  relinkPdf(path, moveInto(f, dir).toSaved()) // a scan's PDF stays linked to its scan wherever it goes
   Store.changed()
 }
 
@@ -119,7 +129,7 @@ fun moveFileToRoot(path: String) = moveFile(path, rootFolder().path)
 private fun File.toSaved() = Saved(name, path, length(), lastModified())
 
 fun saveBytes(base: String, ext: String, bytes: ByteArray, folder: String? = null): Saved {
-  val f = freeFile(base, ext, folder?.let(::File) ?: rootFolder())
+  val f = freeFile(base, ext, outputDirectory(folder))
   f.writeBytes(bytes)
   Store.changed()
   return f.toSaved()
@@ -127,7 +137,7 @@ fun saveBytes(base: String, ext: String, bytes: ByteArray, folder: String? = nul
 
 /** saveBytes() for output already written to the cache: moved in under a free name. */
 fun adoptTemp(tmp: File, base: String, ext: String, folder: String? = null): Saved {
-  val f = freeFile(base, ext, folder?.let(::File) ?: rootFolder())
+  val f = freeFile(base, ext, outputDirectory(folder))
   if (!tmp.renameTo(f)) { tmp.copyTo(f); tmp.delete() }
   Store.changed()
   return f.toSaved()
@@ -139,14 +149,15 @@ fun renameFile(f: Saved, newName: String): Saved {
   val base = newName.trim().replace(Regex("\\.$ext$", RegexOption.IGNORE_CASE), "")
   if (base.isEmpty() || "$base.$ext" == f.name) return f
   val src = File(f.path)
+  if (!insideRoot(f.path) || !src.isFile) return f
   val dest = freeFile(base, ext, src.parentFile ?: rootFolder())
-  src.renameTo(dest)
+  if (!src.renameTo(dest)) return f
   Store.changed() // Drive sync spots the same content under a new name and renames it there too
-  return f.copy(name = dest.name, path = dest.path)
+  return dest.toSaved()
 }
 
 fun listFiles(folder: String? = null): List<Saved> =
-  (folder?.let(::File) ?: rootFolder()).listFiles()?.filter { it.isFile }?.map { it.toSaved() }?.sortedByDescending { it.modified } ?: emptyList()
+  (outputDirectory(folder)).listFiles()?.filter { it.isFile }?.map { it.toSaved() }?.sortedByDescending { it.modified } ?: emptyList()
 
 /** Every file across the root and all folders (for global search), newest first. */
 fun listAllFiles(): List<Saved> = (listFiles() + listFolders().flatMap { listFiles(it.path) }).sortedByDescending { it.modified }

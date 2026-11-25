@@ -11,6 +11,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +39,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -122,87 +127,97 @@ fun FilesTab() {
     else confirm = ConfirmSpec("Delete folder?", "\"${f.name}\" and ${if (count == 0) "any files inside" else "${plural(count, "file")} inside"} will be permanently deleted.") { removeFolder(f.path) }
   }
 
-  Screen {
-    if (folderName == null) PagomiHeader()
-    if (folderName != null) {
-      Row(Modifier.padding(top = 4.dp).tap(scaleTo = 0.95f, onClick = goBack).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(I.arrowLeft, 20.dp)
-        Spacer(Modifier.size(6.dp))
-        T("All Files", Type.med, c.sub)
+  var showFolders by rememberSaveable { mutableStateOf(false) }
+  BoxWithConstraints(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 2.dp)) {
+    val compact = maxHeight < 490.dp
+    val showHeader = maxHeight >= 280.dp
+    Column(Modifier.fillMaxSize()) {
+      if (folderName == null && showHeader) PagomiHeader()
+      if (folderName != null) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+          IconBtn(I.arrowLeft, label = "All Files", onClick = goBack)
+          T(folderName, Type.title, c.ink, Modifier.weight(1f), maxLines = 1)
+        }
+        if (!compact && !subtitle.isNullOrEmpty()) T(subtitle, Type.small, c.sub)
+      } else {
+        LargeTitle("My Files", if (compact) null else when (place) {
+          Place.Drive -> "Synced with Google Drive"
+          Place.Phone -> "Open a PDF from this phone"
+          Place.Saved -> subtitle
+        })
+        Segmented(listOf(Place.Saved to "Saved", Place.Phone to "Browse", Place.Drive to "Drive"), place,
+          icons = listOf(I.folderOutline, I.cellphone, I.googleDrive)) { place = it; query = ""; showFolders = false }
+        Spacer(Modifier.height(8.dp))
       }
-      LargeTitle(folderName, if (onDrive) "In Google Drive" else subtitle)
-    } else {
-      LargeTitle("My Files", when (place) { Place.Drive -> "Synced with Google Drive"; Place.Phone -> "Open a PDF from this phone"; Place.Saved -> subtitle })
-    }
-
-    // Saved / Phone / Google Drive, only at the top level: inside a folder the subtitle already says which side it is.
-    if (folderName == null) {
-      Segmented(listOf(Place.Saved to "Saved", Place.Phone to "Browse", Place.Drive to "Drive"), place, icons = listOf(I.folderOutline, I.cellphone, I.googleDrive)) { place = it; query = "" }
-      Spacer(Modifier.height(12.dp))
-    }
-    if (place != Place.Phone) SearchField(query, { query = it }, "Search files…")
-
-    AnimatedContent(place, label = "place", transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { where ->
-      Column {
-        if (where == Place.Drive) {
+      if (place != Place.Phone) SearchField(query, { query = it }, "Search files…", Modifier.testTag("files-search"))
+      when (place) {
+        Place.Phone -> PagedColumn(Modifier.weight(1f).fillMaxWidth()) { PhoneFiles(query) }
+        Place.Drive -> PagedColumn(Modifier.weight(1f).fillMaxWidth()) {
           DriveFiles(query, driveFolder) { driveFolder = it; query = "" }
-          return@Column
         }
-        if (where == Place.Phone) {
-          PhoneFiles(query)
-          return@Column
-        }
-        // Folders sit on top as a strip of cards; the filters below only narrow the files.
-        val showFolders = folder == null && needle.isEmpty() && (folders.isNotEmpty() || files.isNotEmpty())
-        if (showFolders) {
-          GroupLabel(if (folders.isEmpty()) "Folders" else "Folders · ${folders.size}", first = true)
-          Row(Modifier.padding(top = 4.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            NewFolderCard(newFolder)
-            folders.forEach { (f, n) ->
-              FolderCard(f.name, n, onOpen = { folderPath = f.path; query = ""; filter = Filter.All }) { menu = Menu.OfFolder(f, n) }
+        Place.Saved -> {
+          val folderMode = showFolders && folder == null
+          if (folder == null) {
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+              Chip("Documents", !folderMode) { showFolders = false }
+              Chip("Folders", folderMode) { showFolders = true }
+              Spacer(Modifier.weight(1f))
+              IconBtn(I.folderPlusOutline, 24.dp, c.accentInk, "New folder", onClick = newFolder)
             }
           }
-        }
-        when {
-          files.isEmpty() && needle.isEmpty() && showFolders -> T(
-            "Files you save outside a folder appear here.", Type.small, c.sub, Modifier.fillMaxWidth().padding(top = 28.dp), align = TextAlign.Center,
-          )
-          files.isEmpty() && needle.isEmpty() -> Empty(
-            { ToolArt("files", 112.dp) },
-            if (folder != null) "This folder is empty" else "No files yet",
-            if (folder != null) "Move files into this folder or generate new PDFs." else "PDFs you merge, split, compress or scan are saved here, so you can share them again later.",
-          ) {
-            if (folder != null) Btn("Back to All Files", Modifier.fillMaxWidth(), kind = BtnKind.Secondary, onClick = goBack)
-            else {
-              Btn("Create a folder", Modifier.fillMaxWidth(), I.folderPlusOutline, onClick = newFolder)
-              Btn("Scan a document", Modifier.fillMaxWidth(), I.cameraOutline, BtnKind.Secondary) { nav.scan() }
-              Btn("Browse tools", Modifier.fillMaxWidth(), kind = BtnKind.Secondary) { nav.show(Tab.Tools) }
+          if (!folderMode) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp).horizontalScroll(rememberScrollState()),
+              horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+              Filter.entries.forEach { choice -> Chip(choice.label, filter == choice) { filter = choice } }
             }
           }
-          else -> {
-            Row(
-              Modifier.padding(top = if (showFolders) 22.dp else 12.dp, bottom = 14.dp).horizontalScroll(rememberScrollState()),
-              horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              Filter.entries.forEach { f -> Chip(f.label, filter == f) { filter = f } }
-            }
-            if (filtered.isEmpty()) {
-              T("No files match \"${needle.ifEmpty { filter.label }}\".", Type.body, c.sub, Modifier.fillMaxWidth().padding(top = 28.dp), align = TextAlign.Center)
-            }
-            byDay(filtered) { it.modified }.forEachIndexed { gi, (label, items) ->
-              GroupLabel(label, first = gi == 0)
-              Group {
-                items.forEachIndexed { i, f ->
-                  ListRow(
-                    stem(f.name), first = i == 0, lead = { DocGlyph(kindOf(f.name)) }, marquee = true,
-                    subtitle = "${fmtSize(f.size)} · ${fmtTime(f.modified)}", onClick = { openFile(f.path, f.name) }, onLongClick = { menu = Menu.OfFile(f) },
-                  ) {
-                    // Only files still waiting to upload get a cloud: "Synced" is the normal state.
-                    if (Backup.waiting(f.path, f.name)) Icon(I.cloudUploadOutline, 17.dp, c.accent)
-                    IconBtn(I.dotsVertical, color = c.sub, label = "More") { menu = Menu.OfFile(f) }
+          val visibleFolders = if (folderMode) folders.filter { needle.isEmpty() || it.first.name.lowercase().contains(needle) } else emptyList()
+          BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            val scale = LocalDensity.current.fontScale.coerceAtLeast(1f)
+            val rowHeight = 74.dp * scale
+            val total = if (folderMode) visibleFolders.size else filtered.size
+            val fullCapacity = (maxHeight / rowHeight).toInt().coerceAtLeast(1)
+            val available = (maxHeight - if (total > fullCapacity) 52.dp else 0.dp).coerceAtLeast(1.dp)
+            val capacity = (available / rowHeight).toInt().coerceAtLeast(1)
+            val count = ((total + capacity - 1) / capacity).coerceAtLeast(1)
+            var current by rememberSaveable(folderPath, filter, query, folderMode, capacity) { mutableStateOf(0) }
+            val page = current.coerceIn(0, count - 1)
+            Column(Modifier.fillMaxSize()) {
+              if (total == 0) {
+                T(if (needle.isNotEmpty()) "No matching items." else if (folderMode) "No folders yet." else "No documents yet.",
+                  Type.body, c.sub, Modifier.fillMaxWidth().padding(vertical = 16.dp), align = TextAlign.Center)
+                if (needle.isEmpty()) {
+                  if (folderMode) Btn("Create a folder", Modifier.fillMaxWidth(), I.folderPlusOutline, onClick = newFolder)
+                  else Btn("Scan a document", Modifier.fillMaxWidth(), I.cameraOutline) { nav.scan() }
+                }
+              } else {
+                if (folderMode) {
+                  Group {
+                    visibleFolders.drop(page * capacity).take(capacity).forEachIndexed { i, (item, n) ->
+                      ListRow(item.name, first = i == 0, lead = { FolderGlyph(28.dp) }, subtitle = plural(n, "file"),
+                        marquee = true, onClick = { folderPath = item.path; query = ""; filter = Filter.All; showFolders = false },
+                        onLongClick = { menu = Menu.OfFolder(item, n) }) {
+                        IconBtn(I.dotsVertical, color = c.sub, label = "More") { menu = Menu.OfFolder(item, n) }
+                      }
+                    }
+                  }
+                } else {
+                  Group {
+                    filtered.drop(page * capacity).take(capacity).forEachIndexed { i, item ->
+                      ListRow(stem(item.name), Modifier.testTag("file-${item.name}"), first = i == 0,
+                        lead = { DocGlyph(kindOf(item.name)) }, marquee = true,
+                        subtitle = "${fmtSize(item.size)} · ${fmtDate(item.modified)}", onClick = { openFile(item.path, item.name) },
+                        onLongClick = { menu = Menu.OfFile(item) }) {
+                        if (Backup.waiting(item.path, item.name)) Icon(I.cloudUploadOutline, 17.dp, c.accent)
+                        IconBtn(I.dotsVertical, color = c.sub, label = "More") { menu = Menu.OfFile(item) }
+                      }
+                    }
                   }
                 }
               }
+              Spacer(Modifier.weight(1f))
+              SectionPager(page, count) { current = it }
             }
           }
         }
@@ -287,39 +302,6 @@ fun FilesTab() {
   }
 
   exporting?.let { (pdf, word) -> ExportDialog(pdf, word) { exporting = null } }
-}
-
-private val FOLDER_CARD = 128.dp
-
-@Composable
-private fun NewFolderCard(onClick: () -> Unit) {
-  val shape = RoundedCornerShape(Radius.group)
-  Column(
-    Modifier.width(FOLDER_CARD).height(112.dp).tap(shape = shape, scaleTo = 0.95f, label = "New folder", onClick = onClick)
-      .background(c.accentSoft, shape).padding(14.dp),
-    verticalArrangement = Arrangement.SpaceBetween,
-  ) {
-    Box(Modifier.size(38.dp).background(c.surface, CircleShape), contentAlignment = Alignment.Center) { Icon(I.plus, 20.dp, c.accent) }
-    T("New folder", Type.bold, c.accent, maxLines = 1)
-  }
-}
-
-@Composable
-private fun FolderCard(name: String, count: Int, onOpen: () -> Unit, onMore: () -> Unit) {
-  val shape = RoundedCornerShape(Radius.group)
-  Box(
-    Modifier.width(FOLDER_CARD).height(112.dp).tap(shape = shape, scaleTo = 0.95f, label = "Open $name", onLongClick = onMore, onClick = onOpen)
-      .background(c.surface, shape).border(0.6.dp, c.lineStrong, shape),
-  ) {
-    Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
-      FolderGlyph(40.dp)
-      Column {
-        T(name, Type.bold, maxLines = 1)
-        T(plural(count, "file"), Type.small, c.sub, maxLines = 1)
-      }
-    }
-    Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) { IconBtn(I.dotsVertical, 18.dp, c.sub, "More", onClick = onMore) }
-  }
 }
 
 private class PromptSpec(val title: String, val subtitle: String, val placeholder: String, val initial: String, val submit: String, val run: (String) -> Unit)
