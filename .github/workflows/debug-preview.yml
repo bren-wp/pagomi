@@ -48,8 +48,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/pagomi-0.1.9-debug.apk
-          cp app/build/outputs/bundle/debug/app-debug.aab dist/pagomi-0.1.9-debug.aab
+          cp app/build/outputs/apk/debug/app-debug.apk dist/pagomi-0.1.10-debug.apk
+          cp app/build/outputs/bundle/debug/app-debug.aab dist/pagomi-0.1.10-debug.aab
           sha256sum dist/* > dist/SHA256SUMS.txt
       - name: Upload preview builds
         uses: actions/upload-artifact@v7
@@ -62,7 +62,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          TAG="v0.1.9-debug.${GITHUB_SHA:0:7}"
-          gh release create "$TAG" dist/pagomi-0.1.9-debug.apk dist/pagomi-0.1.9-debug.aab dist/SHA256SUMS.txt \
-            --target "$GITHUB_SHA" --title "pagomi. 0.1.9 · Debug Preview" --prerelease \
+          TAG="v0.1.10-debug.${GITHUB_SHA:0:7}"
+          gh release create "$TAG" dist/pagomi-0.1.10-debug.apk dist/pagomi-0.1.10-debug.aab dist/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" --title "pagomi. 0.1.10 · Debug Preview" --prerelease \
             --notes "Debug-only preview for testing pagomi. – PDF Scanner & Editor. APK uses Android's standard debug signing key. The AAB is a development artifact and is not a Play Store publishing bundle. Source: this tagged commit."

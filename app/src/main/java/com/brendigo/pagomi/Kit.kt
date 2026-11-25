@@ -309,6 +309,19 @@ private fun SectionButton(glyph: Int, label: String, tag: String, enabled: Boole
   }
 }
 
+/** Stable page controls for actual discrete content pages, not an offset into a scrolling list. */
+@Composable
+fun SectionPager(page: Int, count: Int, onPage: (Int) -> Unit) {
+  if (count <= 1) return
+  Row(Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(Radius.control))
+    .border(1.dp, c.line, RoundedCornerShape(Radius.control)).padding(horizontal = 4.dp, vertical = 2.dp),
+    verticalAlignment = Alignment.CenterVertically) {
+    SectionButton(I.chevronLeft, "Previous section", "section-previous", page > 0) { onPage(page - 1) }
+    T("${page + 1} / $count", Type.label, c.sub, Modifier.weight(1f).testTag("section-indicator"), align = TextAlign.Center)
+    SectionButton(I.chevronRight, "Next section", "section-next", page + 1 < count) { onPage(page + 1) }
+  }
+}
+
 @Composable
 fun Screen(bottom: Dp = LocalBottomRoom.current, top: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
   val scroll = rememberScrollState()

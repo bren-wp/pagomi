@@ -1,5 +1,6 @@
 package com.brendigo.pagomi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,25 +57,44 @@ fun SettingsTab() {
   }
   val version = remember { runCatching { appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName }.getOrNull() ?: "" }
 
+  var section by rememberSaveable { mutableStateOf<String?>(null) }
+  BackHandler(section != null) { section = null }
   Screen {
-    PagomiHeader()
-    LargeTitle("Settings", "Manage your preferences, storage and privacy.")
-
-    Row(Modifier.fillMaxWidth().background(c.accentSoft, RoundedCornerShape(Radius.card)).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-      Icon(I.shieldCheckOutline, 28.dp, c.accentInk)
-      Column(Modifier.weight(1f).padding(start = 12.dp)) {
-        T("Your documents, your control", Type.bold)
-        T("No account required", Type.small, c.sub)
+    if (section == null) {
+      PagomiHeader()
+      LargeTitle("Settings", "Manage your preferences, storage and privacy.")
+      Row(Modifier.fillMaxWidth().background(c.accentSoft, RoundedCornerShape(Radius.card)).padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Icon(I.shieldCheckOutline, 26.dp, c.accentInk)
+        Column(Modifier.weight(1f).padding(start = 10.dp)) {
+          T("Your documents, your control", Type.bold)
+          T("No account required", Type.small, c.sub)
+        }
       }
-    }
-    GroupLabel("Storage & sync")
-    DriveBackup()
+      GroupLabel("Preferences", caps = false)
+      Group {
+        ListRow("Storage & sync", first = true, lead = { Lead(I.googleDrive) }, chevron = true, onClick = { section = "Storage & sync" })
+        ListRow("Appearance", lead = { Lead(I.cogOutline) }, chevron = true, onClick = { section = "Appearance" })
+        ListRow("Storage", lead = { Lead(I.harddisk) }, chevron = true, onClick = { section = "Storage" })
+        ListRow("Default scan settings", lead = { Lead(I.textRecognition) }, chevron = true, onClick = { section = "Scanning" })
+        ListRow("Security & privacy", lead = { Lead(I.shieldCheckOutline) }, chevron = true, onClick = { section = "Privacy" })
+        ListRow("Help & feedback", lead = { Lead(I.messageTextOutline) }, chevron = true, onClick = { section = "Help & feedback" })
+        ListRow("About pagomi.", lead = { Lead(I.informationOutline) }, chevron = true, onClick = { section = "About" })
+      }
+    } else {
+      Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        IconBtn(I.arrowLeft, label = "Back") { section = null }
+        T("Settings", Type.label, c.sub)
+      }
+      LargeTitle(section ?: "Settings")
+      when (section) {
+        "Storage & sync" -> {     DriveBackup()
 
-    GroupLabel("Appearance")
-    ThemePicker()
+ }
+        "Appearance" -> {     ThemePicker()
 
-    GroupLabel("Storage")
-    Group {
+ }
+        "Storage" -> {     Group {
       ListRow("Saved files", first = true, lead = { Lead(I.folderOutline) }, value = files.size.toString())
       ListRow("Space used", lead = { Lead(I.harddisk) }, value = fmtSize(files.sumOf { it.size }))
       ListRow(
@@ -82,8 +103,8 @@ fun SettingsTab() {
       )
     }
 
-    GroupLabel("Scanning")
-    Group {
+ }
+        "Scanning" -> {     Group {
       ListRow(
         "Make scans searchable", first = true, lead = { Lead(I.textRecognition) },
         subtitle = "Reads the text when you save a scan, so you can search and copy it. Runs on this phone; saving takes a little longer.",
@@ -91,8 +112,8 @@ fun SettingsTab() {
       ) { Toggle(ScanPrefs.searchable) { ScanPrefs.save(it) } }
     }
 
-    GroupLabel("Privacy")
-    Group {
+ }
+        "Privacy" -> {     Group {
       if (Backup.state.enabled) {
         ListRow("Processed on this phone", first = true, lead = { Lead(I.cellphoneLock) }, subtitle = "Every tool runs on the device. Your PDFs sync only with your own Google Drive, and nobody else sees them.")
       } else {
@@ -102,8 +123,14 @@ fun SettingsTab() {
       ListRow("Works offline", lead = { Lead(I.airplane) }, subtitle = "Every tool works in airplane mode. Syncing waits until you're online.")
     }
 
-    GroupLabel("About")
-    Group {
+ }
+        "Help & feedback" -> {
+          Group {
+            ListRow("Privacy Policy & Terms", first = true, lead = { Lead(I.shieldCheckOutline) }, chevron = true, onClick = { terms = true })
+            ListRow("Send feedback", lead = { Lead(I.messageTextOutline) }, chevron = true, onClick = { openUrl(FEEDBACK_FORM) })
+          }
+        }
+        "About" -> {     Group {
       ListRow("Version", first = true, lead = { Lead(I.informationOutline) }, value = version)
       ListRow("App", lead = { Lead(I.informationOutline) }, value = Brand.name)
       ListRow("Privacy Policy & Terms", lead = { Lead(I.shieldCheckOutline) }, chevron = true, onClick = { terms = true })
@@ -111,6 +138,8 @@ fun SettingsTab() {
         "Send feedback", lead = { Lead(I.messageTextOutline) }, subtitle = "Share your feedback with us.",
         onClick = { openUrl(FEEDBACK_FORM) },
       ) { Icon(I.openInNew, 18.dp, c.faint) }
+    } }
+      }
     }
   }
 

@@ -9,6 +9,9 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,10 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -47,78 +52,86 @@ private fun matches(target: String, tokens: List<String>) = target.lowercase().l
 fun ToolsHub() {
   val nav = LocalNav.current
   var q by rememberSaveable { mutableStateOf("") }
+  var section by rememberSaveable { mutableStateOf(-1) }
+  var categoryOpen by remember { mutableStateOf(false) }
+  var showFiles by rememberSaveable { mutableStateOf(false) }
   val files = remember(Store.version) { listAllFiles() }
   val tokens = q.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
   val searching = tokens.isNotEmpty()
-  val tools = if (searching) TOOLS.filter { matches("${it.title} ${it.desc}", tokens) } else TOOLS
+  val featured = listOf("merge", "split", "fillSign", "ocr", "compress", "rotate", "watermark", "password", "crop", "metadata")
+  val pinned = Pins.ids.mapNotNull(::toolById)
+  val ordered = (pinned + featured.mapNotNull(::toolById) + TOOLS).distinctBy { it.id }
+  val tools = if (searching) ordered.filter { matches("${it.title} ${it.desc}", tokens) } else when (section) {
+    -2 -> pinned
+    -1 -> ordered.filter { it.id != "scan" }
+    else -> ordered.filter { it.section == section }
+  }
   val found = if (searching) files.filter { matches(it.name, tokens) } else emptyList()
-  // Sections with something to show besides the camera (the hero card already opens it).
-  val featuredIds = listOf("merge", "split", "fillSign", "ocr", "compress", "rotate", "watermark", "password", "crop", "metadata")
-  val featured = featuredIds.mapNotNull(::toolById)
-  val sections = remember { SECTIONS.indices.filter { si -> TOOLS.any { it.section == si && it.id != "scan" } } }
-  var section by rememberSaveable { mutableStateOf(-1) } // -1: every section
-
-  Screen {
-    PagomiHeader()
-    LargeTitle("Tools", "Powerful PDF tools to edit, organize, and work smarter.")
-    SearchField(q, { q = it }, "Search tools or files…", Modifier.testTag("tools-search"))
-
-    if (!searching) {
-      Column(Modifier.padding(top = 12.dp).fillMaxWidth().background(Brush.linearGradient(c.hero), RoundedCornerShape(Radius.hero)).padding(13.dp)) {
-        T("Powerful PDF tools", Type.hero, Color.White)
-        T("Merge, split, sign and organize documents on your device.", Type.small, Color.White, Modifier.padding(top = 6.dp))
+  val filesSelected = searching && found.isNotEmpty() && (showFiles || tools.isEmpty())
+  BoxWithConstraints(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().imePadding().padding(horizontal = 14.dp, vertical = 2.dp)) {
+    val compact = maxHeight < 470.dp
+    Column(Modifier.fillMaxSize()) {
+      if (maxHeight >= 280.dp) PagomiHeader()
+      LargeTitle("Tools", if (compact) null else "Powerful PDF tools to edit, organize, and work smarter.")
+      SearchField(q, { q = it; showFiles = false }, "Search tools or files…", Modifier.testTag("tools-search"))
+      if (!searching) {
+        if (!compact) {
+          Row(Modifier.padding(top = 10.dp).fillMaxWidth().background(Brush.linearGradient(c.hero), RoundedCornerShape(Radius.hero)).padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+              T("Powerful PDF tools", Type.hero, Color.White)
+              T("Merge, split, sign and organize.", Type.small, Color.White, Modifier.padding(top = 4.dp))
+            }
+            ToolArt("merge", 44.dp)
+          }
+        }
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+          Chip("All tools", section == -1) { section = -1 }
+          Chip("Pinned", section == -2) { section = -2 }
+          Row(Modifier.weight(1f).tap(label = "Categories") { categoryOpen = true }.padding(horizontal = 4.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            T(if (section >= 0) SECTIONS[section] else "Categories", Type.small, c.accentInk, Modifier.weight(1f), maxLines = 2)
+            Icon(I.chevronRight, 16.dp, c.accentInk)
+          }
+        }
+      } else if (found.isNotEmpty() && tools.isNotEmpty()) {
+        Row(Modifier.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+          Chip("Tools (${tools.size})", !filesSelected) { showFiles = false }
+          Chip("Files (${found.size})", filesSelected) { showFiles = true }
+        }
       }
-      Row(
-        Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        Chip("All tools", section == -1) { section = -1 }
-        sections.forEach { si -> Chip(SECTIONS[si], section == si) { section = si } }
-      }
-    }
-
-    if (found.isNotEmpty()) {
-      GroupLabel("Files", "All files", { nav.show(Tab.Files) })
-      Group {
-        found.take(5).forEachIndexed { i, f ->
-          ListRow(
-            stem(f.name), first = i == 0, lead = { DocGlyph(kindOf(f.name)) }, marquee = true,
-            subtitle = "${fmtSize(f.size)} · ${fmtDate(f.modified)}", onClick = { openFile(f.path, f.name) },
-          ) { IconBtn(I.shareVariantOutline, 18.dp, c.sub, "Share") { share(f.path, f.name) } }
+      BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+        val scale = LocalDensity.current.fontScale.coerceAtLeast(1f)
+        val rowTarget = if (filesSelected) 68.dp * scale else 88.dp * scale
+        val total = if (filesSelected) found.size else tools.size
+        val columns = if (filesSelected || maxWidth < 300.dp || scale > 1.35f) 1 else 2
+        val fullRows = (maxHeight / rowTarget).toInt().coerceIn(1, 5)
+        val needsPager = total > fullRows * columns
+        val available = (maxHeight - if (needsPager) 52.dp else 0.dp).coerceAtLeast(1.dp)
+        val rows = (available / rowTarget).toInt().coerceIn(1, 5)
+        val capacity = rows * columns
+        val count = ((total + capacity - 1) / capacity).coerceAtLeast(1)
+        var current by rememberSaveable(q, section, filesSelected, capacity) { mutableStateOf(0) }
+        val page = current.coerceIn(0, count - 1)
+        val tileHeight = ((available - (rows - 1) * 8.dp) / rows).coerceAtLeast(1.dp)
+        Column(Modifier.fillMaxSize()) {
+          if (total == 0) {
+            T(if (searching) "No matching files or tools." else "Pin your favourite tools to find them here.",
+              Type.body, c.sub, Modifier.fillMaxWidth().padding(16.dp), align = TextAlign.Center)
+          } else if (filesSelected) {
+            DashboardFiles(found.drop(page * capacity).take(capacity), tileHeight)
+          } else {
+            ToolGrid(tools.drop(page * capacity).take(capacity), shared = false, columns = columns,
+              fixedHeight = tileHeight, gap = 8.dp) { nav.tool(it.id) }
+          }
+          Spacer(Modifier.weight(1f))
+          SectionPager(page, count) { current = it }
         }
       }
     }
-
-    // Pinned tools first, in the order they were pinned (hold any tool, or use the pin on its screen).
-    val pinned = Pins.ids.mapNotNull { toolById(it) }
-    if (!searching && section == -1 && pinned.isNotEmpty()) {
-      Stagger(2) {
-        Column {
-          GroupLabel("Pinned · ${pinned.size}")
-          ToolGrid(pinned, shared = false) { nav.tool(it.id) } // the section below owns the flying art
-        }
-      }
-    }
-
-    if (!searching && section == -1) {
-      GroupLabel("Popular tools", caps = false)
-      ToolGrid(featured, shared = false, onOpen = { nav.tool(it.id) })
-    }
-
-    SECTIONS.forEachIndexed { si, name ->
-      if (!searching && section != -1 && section != si) return@forEachIndexed
-      val items = tools.filter { it.section == si && (searching || it.id != "scan") && (searching || section != -1 || it.id !in featuredIds) }
-      if (items.isEmpty()) return@forEachIndexed
-      Stagger(si + 3) {
-        Column {
-          GroupLabel("$name · ${items.size}")
-          ToolGrid(items) { nav.tool(it.id) }
-        }
-      }
-    }
-
-    if (tools.isEmpty() && found.isEmpty()) {
-      T("No tools or files match \"${q.trim()}\". Try \"merge\", \"split\" or \"compress\".", Type.body, c.sub, Modifier.fillMaxWidth().padding(top = 40.dp, start = 24.dp, end = 24.dp), align = TextAlign.Center)
+  }
+  if (categoryOpen) AppDialog({ categoryOpen = false }, "Tool categories") {
+    SECTIONS.forEachIndexed { index, label ->
+      MenuRow(I.viewGridOutline, label) { section = index; categoryOpen = false }
     }
   }
 }
@@ -131,31 +144,31 @@ private fun greeting(): String = when (Calendar.getInstance().get(Calendar.HOUR_
 
 // Two cards a row, each the height of the taller one, so titles and descriptions line up across the grid.
 @Composable
-private fun ToolGrid(items: List<Tool>, shared: Boolean = true, onOpen: (Tool) -> Unit) {
-  Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-    items.chunked(2).forEach { pair ->
-      Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        pair.forEach { t -> ToolCard(t, Modifier.weight(1f), shared) { onOpen(t) } }
-        if (pair.size == 1) Spacer(Modifier.weight(1f))
+private fun ToolGrid(items: List<Tool>, shared: Boolean = true, columns: Int = 2, fixedHeight: Dp? = null, gap: Dp = 10.dp, onOpen: (Tool) -> Unit) {
+  Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+    items.chunked(columns).forEach { pair ->
+      Row(Modifier.fillMaxWidth().then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier.height(IntrinsicSize.Min)), horizontalArrangement = Arrangement.spacedBy(gap)) {
+        pair.forEach { t -> ToolCard(t, Modifier.weight(1f), shared, fixedHeight != null && fixedHeight < 80.dp) { onOpen(t) } }
+        repeat(columns - pair.size) { Spacer(Modifier.weight(1f)) }
       }
     }
   }
 }
 
 @Composable
-private fun ToolCard(t: Tool, modifier: Modifier, shared: Boolean, onClick: () -> Unit) {
+private fun ToolCard(t: Tool, modifier: Modifier, shared: Boolean, compact: Boolean, onClick: () -> Unit) {
   val shape = RoundedCornerShape(Radius.group)
   val pinned = t.id in Pins.ids
   Box(
     modifier.fillMaxHeight().testTag("tool-${t.id}").tap(shape = shape, scaleTo = 0.96f, label = t.title, onClick = onClick)
       .background(c.surface, shape).border(0.6.dp, c.lineStrong, shape),
   ) {
-    Row(Modifier.fillMaxWidth().padding(start = 9.dp, end = 24.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 26.dp, top = 5.dp, bottom = 5.dp), verticalAlignment = Alignment.CenterVertically) {
       ArtTile(t.id, 30.dp, if (shared) Modifier.sharedArt(t.id) else Modifier)
       Spacer(Modifier.size(8.dp))
       Column(Modifier.weight(1f)) {
         T(t.title, Type.bold.copy(fontSize = 12.sp, lineHeight = 16.sp), maxLines = 3)
-        T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 14.sp), c.sub, Modifier.padding(top = 2.dp), maxLines = 2)
+        if (!compact) T(t.desc, Type.small.copy(fontSize = 11.sp, lineHeight = 14.sp), c.sub, Modifier.padding(top = 2.dp), maxLines = 2)
       }
     }
     // Always there, so pinning is found without a hidden long-press: faint outline off, solid Tangerine on.
@@ -189,7 +202,8 @@ fun Home() {
           T("Scan Document", Type.hero.copy(fontSize = 17.sp, lineHeight = 23.sp), Color.White)
           T("Turn paper and photos into clean, high-quality PDFs.", Type.small, Color.White)
         }
-        Icon(I.arrowRight, 22.dp, Color.White)
+        ToolArt("scan", 42.dp)
+        Icon(I.arrowRight, 18.dp, Color.White)
       }
       val importShape = RoundedCornerShape(Radius.card)
       Row(Modifier.padding(top = 8.dp).fillMaxWidth().tap(shape = importShape, label = "Import PDF") {
@@ -234,12 +248,12 @@ fun Home() {
 }
 
 @Composable
-private fun DashboardFiles(files: List<Saved>) {
+private fun DashboardFiles(files: List<Saved>, fixedHeight: Dp? = null) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
     files.forEach { f ->
       val shape = RoundedCornerShape(Radius.group)
-      Row(Modifier.fillMaxWidth().testTag("document-${f.name}").tap(shape = shape, label = "Open ${f.name}") { openFile(f.path, f.name) }
-        .background(c.surface, shape).border(1.dp, c.line, shape).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+      Row(Modifier.fillMaxWidth().then(if (fixedHeight != null) Modifier.height(fixedHeight) else Modifier).testTag("document-${f.name}").tap(shape = shape, label = "Open ${f.name}") { openFile(f.path, f.name) }
+        .background(c.surface, shape).border(1.dp, c.line, shape).padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(36.dp).background(c.accentSoft, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) { DocGlyph(kindOf(f.name)) }
         Spacer(Modifier.size(10.dp))
         Column(Modifier.weight(1f)) {
