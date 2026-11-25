@@ -267,7 +267,15 @@ def main():
     else:
         navigate("Files")
         navigate("file-Project_Proposal.pdf")
-    capture("pdf-editor", ["Edit PDF", "Page 1 of 3"])
+    capture("pdf-editor", ["Edit PDF", "Page 1 of 3", "pdf-page-1"])
+    original = visible_choices(hierarchy(), "pdf-page-1")[0]
+    x1, y1, x2, y2 = original
+    adb("shell", "input", "swipe", str((x1+x2)//2), str(y1+(y2-y1)*3//4), str((x1+x2)//2), str(y1+(y2-y1)//4), "400")
+    wait_for(lambda r: bool(visible_choices(r, "pdf-page-1")) and bool(nodes(r, "Page 1 of 3")), "page fixed after swipe")
+    navigate("Next page")
+    capture("pdf-editor-page-2", ["Page 2 of 3", "pdf-page-2"])
+    navigate("Previous page")
+    wait_for(lambda r: bool(visible_choices(r, "pdf-page-1")), "previous page")
     back()
     navigate("Scan")
     capture("scanner", ["Import photos"])

@@ -15,8 +15,8 @@ android {
     applicationId = "com.brendigo.pagomi"
     minSdk = 24
     targetSdk = 36
-    versionCode = 12
-    versionName = "0.1.11"
+    versionCode = 13
+    versionName = "0.1.12"
     // Default debug APK includes all supported ABIs; optional -PallAbis builds split APKs.
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

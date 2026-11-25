@@ -17,7 +17,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,17 +26,17 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,18 +48,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.pdf.ExperimentalPdfApi
-import androidx.pdf.view.Highlight
 import androidx.pdf.PdfDocument
 import androidx.pdf.PdfPasswordException
-import androidx.pdf.PdfPoint
 import androidx.pdf.PdfRect
 import androidx.pdf.SandboxedPdfLoader
-import androidx.pdf.compose.PdfViewer
-import androidx.pdf.compose.PdfViewerState
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.io.File
 
@@ -90,19 +83,23 @@ private class Match(val first: PdfRect, val all: List<PdfRect>)
 fun PdfViewerScreen(path: String, name: String) {
   val nav = LocalNav.current
   val context = LocalContext.current
-  val scope = rememberCoroutineScope()
-  val state = remember { PdfViewerState() }
   val loader = remember { SandboxedPdfLoader(context) }
-  var doc by remember { mutableStateOf<PdfDocument?>(null) }
+  var doc by remember(path) { mutableStateOf<PdfDocument?>(null) }
+  var selectedPage by rememberSaveable(path) { mutableIntStateOf(0) }
+  val pages = doc?.pageCount ?: 0
+  val page = boundedPage(selectedPage.toLong(), pages) + 1
+  val goToPage: (Int) -> Unit = { selectedPage = boundedPage(it.toLong(), pages) }
   var problem by remember { mutableStateOf("") }
   var password by remember { mutableStateOf<String?>(null) }
   var asking by remember { mutableStateOf(false) }
   var wrong by remember { mutableStateOf(false) }
 
-  LaunchedEffect(password) {
+  LaunchedEffect(path, password) {
+    problem = ""
     try {
       doc = loader.openDocument(Uri.fromFile(File(path)), password)
       asking = false
+    } catch (e: CancellationException) { throw e
     } catch (_: PdfPasswordException) {
       wrong = password != null
       asking = true
@@ -124,7 +121,9 @@ fun PdfViewerScreen(path: String, name: String) {
     searched = false
     if (query.isBlank()) { matches = emptyList(); return@LaunchedEffect }
     delay(250) // typing settles first
-    val found = runCatching { d.searchDocument(query.trim(), 0 until d.pageCount) }.getOrNull()
+    val found = try { d.searchDocument(query.trim(), 0 until d.pageCount) }
+      catch (e: CancellationException) { throw e }
+      catch (_: Exception) { null }
     val list = ArrayList<Match>()
     if (found != null) for (k in 0 until found.size()) {
       val page = found.keyAt(k)
@@ -135,11 +134,7 @@ fun PdfViewerScreen(path: String, name: String) {
     searched = true
   }
   LaunchedEffect(matches, at, searching, doc) {
-    // The view throws if highlights are touched before it has the document, so only once it's loaded (and never
-    // fatally: a highlight that can't be drawn just isn't).
-    if (doc == null) return@LaunchedEffect
-    runCatching { state.setHighlights(if (!searching) emptyList() else matches.flatMapIndexed { i, m -> m.all.map { Highlight(it, if (i == at) CURRENT else MATCH) } }) }
-    matches.getOrNull(at)?.let { runCatching { state.scrollToPosition(PdfPoint(it.first.pageNum, it.first.left, it.first.top)) } }
+    if (searching) matches.getOrNull(at)?.let { goToPage(it.first.pageNum) }
   }
   BackHandler(searching) { searching = false; query = "" }
   val searchFocus = remember { FocusRequester() }
@@ -148,8 +143,6 @@ fun PdfViewerScreen(path: String, name: String) {
   var thumbs by remember { mutableStateOf(false) }
   var jumping by remember { mutableStateOf(false) }
   var editing by remember { mutableStateOf(false) }
-  val pages = doc?.pageCount ?: 0
-  val page = (state.firstVisiblePage + 1).coerceIn(1, maxOf(1, pages))
 
   Column(Modifier.fillMaxSize().background(c.bg)) {
     AnimatedContent(searching, Modifier.statusBarsPadding(), label = "viewerBar", transitionSpec = { fadeIn(tween(160)) togetherWith fadeOut(tween(120)) }) { s ->
@@ -177,34 +170,27 @@ fun PdfViewerScreen(path: String, name: String) {
     }
 
     Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp).clip(RoundedCornerShape(Radius.card)).background(c.sunken)) {
+      val loaded = doc
       when {
         problem.isNotEmpty() -> T(problem, Type.body, c.sub, Modifier.align(Alignment.Center).padding(32.dp))
-        doc == null -> Spinner(c.accent, modifier = Modifier.align(Alignment.Center))
-      }
-      PdfViewer(
-        doc, state, Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 12.dp, bottom = 64.dp),
-        onUrlLinkClicked = { uri -> openUrl(uri.toString()); true },
-      )
-      SelectionHandles(state, c.accent)
-      if (doc != null) {
-        // The page you're on, and the way to every other: tap the number to jump, the grid for thumbnails.
-        Row(
-          Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
-            .background(c.surface, CircleShape).border(1.dp, c.lineStrong, CircleShape).padding(4.dp),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          IconBtn(I.chevronLeft, 20.dp, c.accentInk, "Previous page", enabled = page > 1) { scope.launch { state.scrollToPage(page - 2) } }
-          T(
-            "Page $page of $pages", Type.label, c.ink,
-            Modifier.tap(shape = CircleShape, scaleTo = 0.94f, label = "Go to page") { jumping = true }.padding(horizontal = 14.dp, vertical = 8.dp),
-          )
-          IconBtn(I.chevronRight, 20.dp, c.accentInk, "Next page", enabled = page < pages) { scope.launch { state.scrollToPage(page) } }
-          Box(
-            Modifier.size(36.dp).tap(shape = CircleShape, scaleTo = 0.9f, label = "Page thumbnails") { thumbs = true }.background(c.accent, CircleShape),
-            contentAlignment = Alignment.Center,
-          ) { Icon(I.viewGridOutline, 18.dp, c.onAccent) }
+        loaded == null -> Spinner(c.accent, modifier = Modifier.align(Alignment.Center))
+        pages <= 0 -> T("This document has no pages.", Type.body, c.sub, Modifier.align(Alignment.Center))
+        else -> key(loaded, page) {
+          val marks = if (!searching) emptyList() else matches.flatMapIndexed { i, m ->
+            m.all.filter { it.pageNum == page - 1 }.map { it to (i == at) }
+          }
+          FixedPdfPage(loaded, page - 1, marks, goToPage, Modifier.fillMaxSize())
         }
+      }
+    }
+    if (pages > 0) {
+      Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp).background(c.surface, RoundedCornerShape(Radius.control)),
+        verticalAlignment = Alignment.CenterVertically) {
+        IconBtn(I.chevronLeft, 24.dp, c.accentInk, "Previous page", enabled = page > 1) { goToPage(page - 2) }
+        T("Page $page of $pages", Type.label, c.ink, Modifier.weight(1f)
+          .tap(label = "Go to page") { jumping = true }.padding(vertical = 10.dp), align = androidx.compose.ui.text.style.TextAlign.Center)
+        IconBtn(I.chevronRight, 24.dp, c.accentInk, "Next page", enabled = page < pages) { goToPage(page) }
+        IconBtn(I.viewGridOutline, 24.dp, c.accentInk, "Page thumbnails") { thumbs = true }
       }
     }
     Column(Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
@@ -249,51 +235,30 @@ fun PdfViewerScreen(path: String, name: String) {
 
   if (jumping) PromptDialog(
     "Go to page", "$page", "1 to $pages", "Page number", "Go", keyboard = KeyboardType.Number, onClose = { jumping = false },
-  ) { typed -> typed.toIntOrNull()?.let { n -> scope.launch { state.scrollToPage((n - 1).coerceIn(0, pages - 1)) } } }
+  ) { typed -> typed.toLongOrNull()?.let { n -> selectedPage = boundedPage(if (n <= 1L) 0L else n - 1L, pages) } }
 
   if (thumbs) ModalBottomSheet({ thumbs = false }, containerColor = c.surface) {
-    Thumbnails(path, pages, page - 1) { i -> thumbs = false; scope.launch { state.scrollToPage(i) } }
+    doc?.let { loaded -> Thumbnails(loaded, pages, page - 1) { i -> thumbs = false; goToPage(i) } }
   }
 
   if (asking) PasswordPrompt(name, wrong, onCancel = { nav.back() }) { password = it }
 }
 
-/**
- * Drag handles at both ends of a text selection, like Drive's. The viewer tracks and drags them itself, but in this
- * version doesn't draw them, so they're drawn here over it, from its own page-to-screen mapping. Drawing only: touches
- * fall through to the viewer, which moves the selection.
- */
-@OptIn(ExperimentalPdfApi::class)
-@Composable
-private fun SelectionHandles(state: PdfViewerState, color: androidx.compose.ui.graphics.Color) {
-  val sel = state.currentSelection ?: return
-  val bounds = sel.bounds.takeIf { it.isNotEmpty() } ?: return
-  androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-    state.zoom; state.firstVisiblePageOffset // read so the handles follow scrolling and zooming
-    val r = 9.dp.toPx()
-    val first = bounds.first()
-    val last = bounds.last()
-    // A teardrop hanging below each end: a circle with its inner corner squared off to the point.
-    fun handle(at: androidx.compose.ui.geometry.Offset, start: Boolean) {
-      val dx = if (start) -r else r
-      drawCircle(color, r, androidx.compose.ui.geometry.Offset(at.x + dx, at.y + r))
-      drawRect(color, androidx.compose.ui.geometry.Offset(if (start) at.x - r else at.x, at.y), androidx.compose.ui.geometry.Size(r, r))
-    }
-    // Hung from the line's lower edge (whichever of top/bottom is lower on the page: the rect's naming varies).
-    state.pdfPointToVisibleOffset(PdfPoint(first.pageNum, first.left, maxOf(first.top, first.bottom)))?.let { handle(it, true) }
-    state.pdfPointToVisibleOffset(PdfPoint(last.pageNum, last.right, maxOf(last.top, last.bottom)))?.let { handle(it, false) }
-  }
-}
-
 /** Every page small, three across, the current one ringed; tap one to go there. */
 @Composable
-private fun Thumbnails(path: String, pages: Int, current: Int, onPick: (Int) -> Unit) {
-  var shots by remember { mutableStateOf<List<Thumb>?>(null) }
-  LaunchedEffect(path) { shots = withContext(Dispatchers.IO) { runCatching { renderThumbs(path, 240) }.getOrNull() } } // locked files: numbers only
+private fun Thumbnails(document: PdfDocument, pages: Int, current: Int, onPick: (Int) -> Unit) {
   val perPage = 6
   val count = ((pages + perPage - 1) / perPage).coerceAtLeast(1)
   var group by remember(current) { mutableIntStateOf((current / perPage).coerceIn(0, count - 1)) }
   val indices = (group * perPage until minOf(pages, (group + 1) * perPage)).toList()
+  var shots by remember(document, group) { mutableStateOf<Map<Int, FixedPageFrame>>(emptyMap()) }
+  LaunchedEffect(document, group) {
+    for (i in indices) {
+      try { shots = shots + (i to fixedPageFrame(document, i, 320)) }
+      catch (e: CancellationException) { throw e }
+      catch (_: Exception) { /* the page remains selectable by its number */ }
+    }
+  }
   PagedColumn(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 8.dp)) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
       IconBtn(I.chevronLeft, 24.dp, c.accentInk, "Previous thumbnails", enabled = group > 0) { group-- }
@@ -304,8 +269,7 @@ private fun Thumbnails(path: String, pages: Int, current: Int, onPick: (Int) -> 
     indices.chunked(3).forEach { row ->
       Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         row.forEach { i ->
-          val t = shots?.getOrNull(i)
-          val img = rememberBitmap(t?.path, 300)
+          val img = shots[i]?.bitmap
           Column(Modifier.weight(1f).tap(scaleTo = 0.94f, label = "Page ${i + 1}") { onPick(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
             val shape = RoundedCornerShape(10.dp)
             Box(Modifier.fillMaxWidth().height(110.dp).clip(shape).background(c.page)

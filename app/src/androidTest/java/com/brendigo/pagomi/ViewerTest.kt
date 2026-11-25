@@ -61,6 +61,22 @@ class ViewerTest {
     }
   }
 
+  @Test fun fixedPageRendersOriginalPageAndKeepsText() = runBlocking {
+    val f = pdf("fixed-page-test.pdf", "First page", "Second page", "Third page")
+    try {
+      SandboxedPdfLoader(appContext).openDocument(Uri.fromFile(f), null).use { doc ->
+        val frame = fixedPageFrame(doc, 1, 640)
+        assertTrue(frame.bitmap.width > 0 && frame.bitmap.height > 0)
+        assertTrue(maxOf(frame.bitmap.width, frame.bitmap.height) <= 640)
+        val info = doc.getPageInfo(1)
+        val selected = doc.getSelectionBounds(1, android.graphics.PointF(0f, 0f), android.graphics.PointF(info.width.toFloat(), info.height.toFloat()))
+        val text = selected?.selectedContents?.filterIsInstance<PdfPageTextContent>()?.joinToString(" ") { it.text }.orEmpty()
+        assertTrue(text.contains("Second page"))
+        assertEquals(3, doc.pageCount)
+      }
+    } finally { f.delete() }
+  }
+
   @Test fun passwordProtectedNeedsItsPassword() = runBlocking {
     val f = pdf("viewer-locked.pdf", "Secret page", password = "open-sesame")
     val loader = SandboxedPdfLoader(appContext)
